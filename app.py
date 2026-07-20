@@ -52,7 +52,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.title("💈 Barbearia Preto & Branco")
-st.subheader("Endereço: R. dos Toureiros, 62 - Juliana")
+st.subheader("Gestão de Agendamentos")
 
 # Criação das abas incluindo o Painel Admin
 aba1, aba2, aba3, aba4 = st.tabs(["📅 Agendar Horário", "📋 Horários Marcados", "❌ Cancelar Horário", "📊 Painel Admin"])
@@ -62,7 +62,6 @@ with aba1:
     st.header("Marcar Horário")
     lista_agendamentos = carregar_agendamentos()
     
-    # Removido o st.form para permitir atualização dinâmica dos horários ao mudar a data
     cliente = st.text_input("Nome do Cliente:", key="input_cliente").strip()
     servico = st.selectbox("Serviço:", list(PRECOS_SERVICOS.keys()), key="select_servico")
     profissional = st.radio("Profissional:", ["Bruno", "Samuel"], horizontal=True, key="radio_prof")
@@ -85,23 +84,20 @@ with aba1:
     dia_semana_selecionado = data_atendimento.weekday()
     horarios_todos = []
     
-    # Geração manual e estrita da grade de horários
     minutos_inicio = 480 # 08h00
     minutos_fim = 1020 if dia_semana_selecionado == 5 else 1080  # 17h00 no sábado | 18h00 na semana
     
     minutos_atual = minutos_inicio
-    while minutos_atual <= minutos_fim:
+    while minutes_atual <= minutos_fim:
         h_print = minutos_atual // 60
         m_print = minutos_atual % 60
         horarios_todos.append(dt_time(h_print, m_print))
         minutos_atual += 40
     
-    # --- FILTRO DE HORÁRIOS OCUPADOS E HORÁRIOS PASSADOS ---
     horarios_disponiveis = []
     for h in horarios_todos:
         dt_verificar = datetime.combine(data_atendimento, h)
         
-        # AGORA SIM: Só filtra horários passados se a data selecionada for REALMENTE hoje
         if data_atendimento == hoje_dt.date():
             if h < hoje_dt.time():
                 continue
@@ -135,12 +131,12 @@ with aba1:
                 lista_agendamentos.sort(key=lambda x: x["data_hora"])
                 salvar_agendamentos(lista_agendamentos)
                 st.success(f"🎉 Agendamento realizado para {cliente}!")
-                time.sleep(1) # Pequena pausa para o usuário ver o sucesso antes de recarregar
+                time.sleep(1)
                 st.rerun()
             else:
                 st.error("Este horário acabou de ser preenchido por outra pessoa.")
 
-# --- ABA 2: VISUALIZAR AGENDA + WHATSAPP ---
+# --- ABA 2: VISUALIZAR AGENDA SEPARADA POR BARBEIRO ---
 with aba2:
     st.header("Próximos Clientes")
     lista_agendamentos = carregar_agendamentos()
@@ -148,22 +144,40 @@ with aba2:
     if not lista_agendamentos:
         st.info("Nenhum agendamento marcado no momento.")
     else:
-        for ag in lista_agendamentos:
-            data_str = ag["data_hora"].strftime("%d/%m/%Y")
-            hora_str = ag["data_hora"].strftime("%H:%M")
+        # Criação de sub-abas dentro da própria agenda para filtrar a visão
+        sub_bruno, sub_samuel, sub_geral = st.tabs(["🧔 Agenda do Bruno", "👨 Agenda do Samuel", "📋 Ver Geral"])
+        
+        def renderizar_lista(lista_filtrada):
+            if not lista_filtrada:
+                st.info("Nenhum agendamento para este filtro.")
+                return
+            for ag in lista_filtrada:
+                data_str = ag["data_hora"].strftime("%d/%m/%Y")
+                hora_str = ag["data_hora"].strftime("%H:%M")
+                
+                with st.container():
+                    col1, col2 = st.columns([3, 1])
+                    with col1:
+                        st.write(f"**🟢 {ag['cliente']}** — {ag['servico']}")
+                        st.caption(f"📅 {data_str} às {hora_str} | Barber: {ag['profissional']}")
+                    with col2:
+                        msg = f"Olá, {ag['cliente']}! Seu horário para {ag['servico']} está confirmado para o dia {data_str} às {hora_str} com o profissional {ag['profissional']}. Obrigado! 💈"
+                        msg_encodada = urllib.parse.quote(msg)
+                        link_whatsapp = f"https://wa.me/?text={msg_encodada}"
+                        
+                        st.markdown(f'<a href="{link_whatsapp}" target="_blank"><button style="width:100%; background-color:#25D366; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer;">📲 Avisar</button></a>', unsafe_allow_html=True)
+                    st.divider()
+
+        with sub_bruno:
+            agendamentos_bruno = [ag for ag in lista_agendamentos if ag["profissional"] == "Bruno"]
+            renderizar_lista(agendamentos_bruno)
             
-            with st.container():
-                col1, col2 = st.columns([3, 1])
-                with col1:
-                    st.write(f"**🟢 {ag['cliente']}** — {ag['servico']}")
-                    st.caption(f"📅 {data_str} às {hora_str} | Barber: {ag['profissional']}")
-                with col2:
-                    msg = f"Olá, {ag['cliente']}! Seu horário para {ag['servico']} está confirmado para o dia {data_str} às {hora_str} com o profissional {ag['profissional']}. Obrigado! 💈"
-                    msg_encodada = urllib.parse.quote(msg)
-                    link_whatsapp = f"https://wa.me/?text={msg_encodada}"
-                    
-                    st.markdown(f'<a href="{link_whatsapp}" target="_blank"><button style="width:100%; background-color:#25D366; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer;">📲 Avisar</button></a>', unsafe_allow_html=True)
-                st.divider()
+        with sub_samuel:
+            agendamentos_samuel = [ag for ag in lista_agendamentos if ag["profissional"] == "Samuel"]
+            renderizar_lista(agendamentos_samuel)
+            
+        with sub_geral:
+            renderizar_lista(lista_agendamentos)
 
 # --- ABA 3: CANCELAR AGENDAMENTO ---
 with aba3:
