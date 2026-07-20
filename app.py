@@ -214,7 +214,7 @@ with aba1:
     minutos_fim = 1020 if dia_semana_selecionado == 5 else 1080
     
     minutos_atual = minutos_inicio
-    while minutes_atual <= minutos_fim:
+    while minutos_atual <= minutos_fim:
         h_print = minutos_atual // 60
         m_print = minutos_atual % 60
         horarios_todos.append(dt_time(h_print, m_print))
