@@ -410,37 +410,30 @@ with aba4:
                     </div>
                     """, unsafe_allow_html=True)
                 
-                # Nova Seção: Quantidade de Serviços Detalhada
+                # Seção: Quantidade de Serviços (Montagem Segura em Linha Única)
                 st.markdown("<h3 style='margin-top:25px;'>Quantidade de Serviços</h3>", unsafe_allow_html=True)
                 
-                linhas_tabela = ""
+                linhas_html = ""
                 for servico, dados in contagem_servicos.items():
-                    linhas_tabela += f"""
-                    <tr style="border-bottom: 1px solid rgba(128,128,128,0.2);">
-                        <td style="padding: 10px; font-weight: 600; color: var(--text-color);">{servico}</td>
-                        <td style="padding: 10px; text-align: center; color: var(--text-color);">{dados['Bruno']}</td>
-                        <td style="padding: 10px; text-align: center; color: var(--text-color);">{dados['Samuel']}</td>
-                        <td style="padding: 10px; text-align: center; font-weight: 700; color: #23a55a;">{dados['Total']}</td>
-                    </tr>
-                    """
+                    linhas_html += (
+                        f"<tr style='border-bottom: 1px solid rgba(128,128,128,0.2);'>"
+                        f"<td style='padding: 10px; font-weight: 600; color: var(--text-color);'>{servico}</td>"
+                        f"<td style='padding: 10px; text-align: center; color: var(--text-color);'>{dados['Bruno']}</td>"
+                        f"<td style='padding: 10px; text-align: center; color: var(--text-color);'>{dados['Samuel']}</td>"
+                        f"<td style='padding: 10px; text-align: center; font-weight: 700; color: #23a55a;'>{dados['Total']}</td>"
+                        f"</tr>"
+                    )
                 
-                tabela_html = f"""
-                <div class="metric-card" style="padding: 15px; overflow-x: auto;">
-                    <table style="width: 100%; border-collapse: collapse; text-align: left;">
-                        <thead>
-                            <tr style="border-bottom: 2px solid rgba(128,128,128,0.4);">
-                                <th style="padding: 10px; color: var(--text-color);">Serviço</th>
-                                <th style="padding: 10px; text-align: center; color: var(--text-color);">Bruno</th>
-                                <th style="padding: 10px; text-align: center; color: var(--text-color);">Samuel</th>
-                                <th style="padding: 10px; text-align: center; color: var(--text-color);">Total Junto</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {linhas_tabela}
-                        </tbody>
-                    </table>
-                </div>
-                """
+                tabela_html = (
+                    f"<div class='metric-card' style='padding: 15px; overflow-x: auto; text-align: left;'>""<table style='width: 100%; border-collapse: collapse;'>""<thead>""<tr style='border-bottom: 2px solid rgba(128,128,128,0.4);'>"
+                    f"<th style='padding: 10px; color: var(--text-color); text-align: left;'>Serviço</th>"
+                    f"<th style='padding: 10px; text-align: center; color: var(--text-color);'>Bruno</th>"
+                    f"<th style='padding: 10px; text-align: center; color: var(--text-color);'>Samuel</th>"
+                    f"<th style='padding: 10px; text-align: center; color: var(--text-color);'>Total Junto</th>"
+                    f"</tr>""</thead>""<tbody>"
+                    f"{linhas_html}"
+                    f"</tbody>""</table>""</div>"
+                )
                 st.markdown(tabela_html, unsafe_allow_html=True)
                 
             else:
