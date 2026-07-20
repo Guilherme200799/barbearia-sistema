@@ -67,7 +67,7 @@ with aba1:
         profissional = st.radio("Profissional:", ["Bruno", "Samuel"], horizontal=True)
         
         hoje_dt = datetime.today()
-        dias_semana_pt = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"]
+        dias_semana_pt = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"]
         
         opcoes_datas = []
         for i in range(30):
