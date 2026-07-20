@@ -138,7 +138,7 @@ with aba1:
     minutos_inicio = 480 # 08h00
     minutos_fim = 1020 if dia_semana_selecionado == 5 else 1080  # 17h00 no sábado | 18h00 na semana
     
-    minutos_atual = minutes_atual = minutos_inicio
+    minutos_atual = minutos_inicio
     while minutos_atual <= minutos_fim:
         h_print = minutos_atual // 60
         m_print = minutos_atual % 60
@@ -176,7 +176,7 @@ with aba1:
                 lista_agendamentos.append({
                     "cliente": cliente,
                     "servico": servico,
-                    "profissional": profesional = profissional,
+                    "profissional": profissional,
                     "data_hora": dt_completo
                 })
                 lista_agendamentos.sort(key=lambda x: x["data_hora"])
@@ -253,7 +253,6 @@ with aba3:
         
         canc_bruno, canc_samuel, canc_geral = st.tabs(["🧔 Cancelar do Bruno", "👨 Cancelar do Samuel", "📋 Ver Todos"])
         
-        # Agora aceitamos o parâmetro "sufixo" para garantir chaves únicas no Streamlit
         def renderizar_lista_cancelamento(lista_filtrada, sufixo):
             if not lista_filtrada:
                 st.info("Nenhum agendamento encontrado.")
@@ -283,7 +282,6 @@ with aba3:
                     """, unsafe_allow_html=True)
                 
                 with col_btn:
-                    # Incluído o sufixo no nome da key (ex: "del_bruno_5", "del_geral_5")
                     if st.button("🗑️ Cancelar", key=f"del_{sufixo}_{indice_real}", type="primary", use_container_width=True):
                         lista_agendamentos.pop(indice_real)
                         salvar_agendamentos(lista_agendamentos)
