@@ -127,7 +127,7 @@ with aba1:
             lista_agendamentos = carregar_agendamentos()
             conflito = any(ag["profissional"] == profissional and ag["data_hora"] == dt_completo for ag in lista_agendamentos)
             
-            if not不动 conflito:
+            if not conflito:
                 lista_agendamentos.append({
                     "cliente": cliente,
                     "servico": servico,
