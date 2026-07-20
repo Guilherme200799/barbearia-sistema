@@ -50,11 +50,11 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.title("💈 Barbearia do Bruno & Samuel")
+st.title("💈 Barbearia Preto & Branco")
 st.subheader("Sistema de Gestão de Agendamentos")
 
 # Criação das abas incluindo o novo Painel Admin
-aba1, aba2, aba3, aba4 = st.tabs(["📅 Agendar", "📋 Agenda", "❌ Cancelar", "📊 Painel Admin"])
+aba1, aba2, aba3, aba4 = st.tabs(["📅 Agendar Horário", "📋 Agenda", "❌ Cancelar Horário", "📊 Painel Admin"])
 
 # --- ABA 1: NOVO AGENDAMENTO ---
 with aba1:
