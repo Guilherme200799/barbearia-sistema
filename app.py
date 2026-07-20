@@ -41,8 +41,8 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.title("💈 Barbearia Preto e Branco")
-st.subheader("Agende seu horário")
+st.title("💈 Barbearia Preto & Branco")
+st.subheader("Endereço: R. dos Toureiros, 62 - Madri, Belo Horizonte - MG, 31744-573")
 
 aba1, aba2, aba3 = st.tabs(["📅 Agendar Horário", "📋 Horários Marcados", "❌ Cancelar Horário"])
 
