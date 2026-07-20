@@ -5,7 +5,7 @@ import os
 import urllib.parse
 import time
 
-# Configuração da página - Tema escuro/moderno por CSS personalizado
+# Configuração da página - Otimizada para leitura e contraste
 st.set_page_config(page_title="Barbearia Preto & Branco", page_icon="💈", layout="centered")
 
 ARQUIVO_BANCO = "agendamentos_barbearia.json"
@@ -41,141 +41,133 @@ def salvar_agendamentos(dados):
     with open(ARQUIVO_BANCO, "w", encoding="utf-8") as f:
         json.dump(dados_para_salvar, f, ensure_ascii=False, indent=4)
 
-# UI DESIGN PREMIUM CUSTOMIZADO (CSS)
+# UI DESIGN DE ALTO CONTRASTE (Fundo claro, textos escuros e botões destacados)
 st.markdown("""
     <style>
-    /* Importando fonte moderna */
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     
-    html, body, [data-testid="stAppViewContainer"] {
+    /* Forçar fundo claro geral */
+    html, body, [data-testid="stAppViewContainer"], [data-testid="stHeader"] {
         font-family: 'Inter', sans-serif;
-        background-color: #0e1117;
+        background-color: #f8f9fa !important;
     }
     
-    /* Customização do Título Principal */
+    /* Títulos principais pretos bem visíveis */
     .main-title {
         text-align: center;
-        font-size: 2.5rem;
+        font-size: 2.2rem;
         font-weight: 700;
-        color: #ffffff;
-        letter-spacing: -1px;
-        margin-bottom: 5px;
+        color: #1a1a1a !important;
+        letter-spacing: -0.5px;
+        margin-bottom: 2px;
+        padding-top: 10px;
     }
     .main-subtitle {
         text-align: center;
-        font-size: 1.1rem;
-        color: #8a99ad;
-        margin-bottom: 30px;
+        font-size: 1rem;
+        color: #4a5568 !important;
+        margin-bottom: 25px;
+        font-weight: 500;
     }
     
-    /* Abas Customizadas estilo Dark/Gold */
+    /* Títulos de seções internos */
+    h3, .stMarkdown h3 {
+        color: #1a1a1a !important;
+        font-weight: 700 !important;
+        font-size: 1.3rem !important;
+    }
+    
+    /* Abas legíveis com fundo cinza claro */
     .stTabs [data-baseweb="tab-list"] {
-        gap: 8px;
-        background-color: #161b22;
+        gap: 6px;
+        background-color: #e2e8f0 !important;
         padding: 6px;
-        border-radius: 12px;
-        border-bottom: none;
+        border-radius: 10px;
     }
     .stTabs [data-baseweb="tab"] {
-        color: #8a99ad !important;
-        background-color: transparent;
-        border-radius: 8px;
-        padding: 10px 16px;
+        color: #4a5568 !important;
+        border-radius: 6px;
+        padding: 8px 14px;
         font-weight: 600;
-        transition: all 0.3s ease;
-    }
-    .stTabs [data-baseweb="tab"]:hover {
-        color: #ffffff !important;
-        background-color: #21262d;
     }
     .stTabs [aria-selected="true"] {
-        color: #000000 !important;
-        background-color: #ffffff !important;
-        box-shadow: 0 4px 12px rgba(255,255,255,0.1);
+        color: #ffffff !important;
+        background-color: #1a1a1a !important;
+        box-sizing: border-box;
     }
     
-    /* Box do Formulário de Agendamento */
+    /* Container do formulário branco com borda fina escura */
     .form-container {
-        background-color: #161b22;
-        border: 1px solid #30363d;
-        padding: 30px;
-        border-radius: 16px;
-        margin-top: 20px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        background-color: #ffffff !important;
+        border: 1px solid #cbd5e1;
+        padding: 25px;
+        border-radius: 12px;
+        margin-top: 15px;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
     }
     
-    /* Botão Principal Estilo Ouro Macio / Premium */
-    button[data-testid="baseButton-primary"] {
+    /* Forçar labels/textos dos inputs a ficarem pretos */
+    label, [data-testid="stWidgetLabel"] p {
+        color: #1a1a1a !important;
+        font-weight: 600 !important;
+        font-size: 14px !important;
+    }
+    
+    /* Inputs do Streamlit com texto escuro interno */
+    div[data-testid="stTextInput"] input, div[data-testid="stSelectbox"] div {
+        color: #1a1a1a !important;
         background-color: #ffffff !important;
-        color: #000000 !important;
+    }
+    
+    /* Botão Principal de Confirmação Preto e Branco */
+    button[data-testid="baseButton-primary"] {
+        background-color: #1a1a1a !important;
+        color: #ffffff !important;
         font-weight: 700 !important;
         border: none !important;
-        border-radius: 10px !important;
-        height: 50px !important;
-        font-size: 16px !important;
-        transition: all 0.3s ease !important;
-        box-shadow: 0 4px 15px rgba(255,255,255,0.1) !important;
+        border-radius: 8px !important;
+        height: 48px !important;
+        font-size: 15px !important;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1) !important;
     }
     button[data-testid="baseButton-primary"]:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(255,255,255,0.2) !important;
-        background-color: #f0f0f0 !important;
+        background-color: #000000 !important;
+        transform: translateY(-1px);
     }
     
-    /* Cartões de Agendamento Ativo */
+    /* Cards de exibição dos clientes */
     .client-card {
-        background-color: #161b22;
-        border: 1px solid #30363d;
-        padding: 20px;
-        border-radius: 14px;
-        margin-bottom: 12px;
+        background-color: #ffffff !important;
+        border: 1px solid #cbd5e1;
+        padding: 16px;
+        border-radius: 10px;
+        margin-bottom: 10px;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        transition: transform 0.2s;
-    }
-    .client-card:hover {
-        transform: translateX(4px);
-        border-color: #8a99ad;
     }
     .whatsapp-btn {
-        background-color: #25D366;
+        background-color: #22c55e !important;
         color: white !important;
-        padding: 10px 18px;
-        border-radius: 8px;
+        padding: 8px 16px;
+        border-radius: 6px;
         font-weight: 600;
         text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 14px;
+        font-size: 13px;
     }
     
-    /* Painel Admin Cards */
+    /* Cards do Painel Admin */
     .metric-card {
-        background-color: #161b22;
-        border: 1px solid #30363d;
-        padding: 20px;
-        border-radius: 14px;
+        background-color: #ffffff !important;
+        border: 1px solid #cbd5e1;
+        padding: 18px;
+        border-radius: 10px;
         text-align: center;
-    }
-    
-    /* Inputs inputs */
-    div[data-testid="stTextInput"] input, div[data-testid="stSelectbox"] div {
-        background-color: #21262d !important;
-        color: white !important;
-        border: 1px solid #30363d !important;
-        border-radius: 8px !important;
-    }
-    
-    label {
-        color: #c9d1d9 !important;
-        font-weight: 500 !important;
     }
     </style>
 """, unsafe_allow_html=True)
 
-# Cabeçalho Limpo e Profissional
+# Cabeçalho limpo com alto contraste
 st.markdown('<div class="main-title">💈 BARBEARIA PRETO & BRANCO</div>', unsafe_allow_html=True)
 st.markdown('<div class="main-subtitle">Agendamento Online & Gestão Integrada</div>', unsafe_allow_html=True)
 
@@ -190,7 +182,6 @@ with aba1:
     
     cliente = st.text_input("Nome completo do cliente:", key="input_cliente", placeholder="Ex: João Silva").strip()
     
-    # Grid de duas colunas para o formulário ficar mais compacto e elegante
     col_form1, col_form2 = st.columns(2)
     with col_form1:
         servico = st.selectbox("Escolha o Serviço:", list(PRECOS_SERVICOS.keys()), key="select_servico")
@@ -236,7 +227,7 @@ with aba1:
     with col_hora:
         if horarios_disponiveis:
             hora_atendimento = st.selectbox("Horários Livres:", horarios_disponiveis, format_func=lambda x: x.strftime("%H:%M"), key="select_hora")
-            st.write("") # Espaçador
+            st.write("") 
             botao_agendar = st.button("Confirmar Agendamento", use_container_width=True, type="primary")
         else:
             st.error("⚠️ Sem horários livres!")
@@ -276,7 +267,7 @@ with aba2:
         
         def renderizar_lista(lista_filtrada):
             if not lista_filtrada:
-                st.markdown("<p style='color:#8a99ad;'>Sem horários marcados.</p>", unsafe_allow_html=True)
+                st.markdown("<p style='color:#4a5568;'>Sem horários marcados.</p>", unsafe_allow_html=True)
                 return
             for ag in lista_filtrada:
                 data_str = ag["data_hora"].strftime("%d/%m/%Y")
@@ -286,9 +277,9 @@ with aba2:
                 card_html = f"""
                 <div class="client-card">
                     <div>
-                        <span style="font-size: 17px; font-weight: 600; color: #ffffff;">{ag['cliente']}</span>
-                        <span style="font-size: 14px; color: #8a99ad;"> • {ag['servico']}</span>
-                        <div style="font-size: 13px; color: #c9d1d9; margin-top: 5px;">
+                        <span style="font-size: 16px; font-weight: 600; color: #1a1a1a;">{ag['cliente']}</span>
+                        <span style="font-size: 14px; color: #4a5568;"> • {ag['servico']}</span>
+                        <div style="font-size: 13px; color: #4a5568; margin-top: 4px;">
                             📅 {data_str} às <b>{hora_str}</b> | Barbeiro: {ag['profissional']}
                         </div>
                     </div>
@@ -325,13 +316,13 @@ with aba3:
                 col_info, col_btn = st.columns([3, 1])
                 with col_info:
                     st.markdown(f"""
-                    <div style="padding: 10px 0;">
-                        <span style="font-size: 15px; font-weight: 600; color: #ff6b6b;">{ag['cliente']}</span><br>
-                        <span style="font-size: 13px; color: #8a99ad;">📅 {data_str} às {hora_str} | {ag['servico']}</span>
+                    <div style="padding: 5px 0;">
+                        <span style="font-size: 15px; font-weight: 600; color: #e11d48;">{ag['cliente']}</span><br>
+                        <span style="font-size: 13px; color: #1a1a1a;">📅 {data_str} às {hora_str} | {ag['servico']}</span>
                     </div>
                     """, unsafe_allow_html=True)
                 with col_btn:
-                    if st.button("🗑️ Remover", key=f"del_{sufixo}_{indice_real}", use_container_width=True):
+                    if st.button("🗑️ Cancelar", key=f"del_{sufixo}_{indice_real}", use_container_width=True, type="primary"):
                         lista_agendamentos.pop(indice_real)
                         salvar_agendamentos(lista_agendamentos)
                         st.success("Cancelado!")
@@ -367,6 +358,6 @@ with aba4:
                 
                 col_m1, col_m2 = st.columns(2)
                 with col_m1:
-                    st.markdown(f'<div class="metric-card"><span style="color:#8a99ad;font-size:13px;">Faturamento</span><br><span style="font-size:24px;font-weight:700;color:#25D366;">R$ {faturamento:,.2f}</span></div>', unsafe_allow_html=True)
+                    st.markdown(f'<div class="metric-card"><span style="color:#4a5568;font-size:13px;font-weight:600;">Faturamento</span><br><span style="font-size:24px;font-weight:700;color:#16a34a;">R$ {faturamento:,.2f}</span></div>', unsafe_allow_html=True)
                 with col_m2:
-                    st.markdown(f'<div class="metric-card"><span style="color:#8a99ad;font-size:13px;">Atendimentos</span><br><span style="font-size:24px;font-weight:700;color:#ffffff;">{total}</span></div>', unsafe_allow_html=True)
+                    st.markdown(f'<div class="metric-card"><span style="color:#4a5568;font-size:13px;font-weight:600;">Atendimentos</span><br><span style="font-size:24px;font-weight:700;color:#1a1a1a;">{total}</span></div>', unsafe_allow_html=True)
