@@ -1,8 +1,9 @@
 import streamlit as st
-from datetime import datetime, timedelta, time
+from datetime import datetime, timedelta, time as dt_time
 import json
 import os
 import urllib.parse
+import time
 
 # Configuração da página - Otimizada para Celulares e Computadores
 st.set_page_config(page_title="Barbearia do Bruno", page_icon="💈", layout="centered")
@@ -66,9 +67,9 @@ with aba1:
         servico = st.selectbox("Serviço:", list(PRECOS_SERVICOS.keys()))
         profissional = st.radio("Profissional:", ["Bruno", "Samuel"], horizontal=True)
         
-        # Correção do Fuso: Força o horário com base no fuso do servidor ajustado para o Brasil (-3 horas)
-        fuso_ajuste = timedelta(hours=-3)
-        hoje_dt = datetime.utcnow() + fuso_ajuste
+        # Correção definitiva usando o tempo local do sistema baseado na máquina/fuso do usuário
+        timestamp_local = time.time() - time.timezone
+        hoje_dt = datetime.utcfromtimestamp(timestamp_local)
         
         dias_semana_pt = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"]
         
@@ -84,18 +85,18 @@ with aba1:
         
         dia_semana_selecionado = data_atendimento.weekday()
         horarios_todos = []
-        inicio_expediente = datetime.combine(hoje_dt.date(), time(8, 0))
+        inicio_expediente = datetime.combine(hoje_dt.date(), dt_time(8, 0))
         
         # Gera a grade padrão de horários (Sábado vs Semana)
         if dia_semana_selecionado == 5:
             for i in range(15):
                 hora_gerada = (inicio_expediente + timedelta(minutes=40 * i)).time()
-                if hora_gerada <= time(17, 0):
+                if hora_gerada <= dt_time(17, 0):
                     horarios_todos.append(hora_gerada)
         else:
             for i in range(17):
                 hora_gerada = (inicio_expediente + timedelta(minutes=40 * i)).time()
-                if hora_gerada <= time(18, 0):
+                if hora_gerada <= dt_time(18, 0):
                     horarios_todos.append(hora_gerada)
         
         # --- FILTRO DE HORÁRIOS OCUPADOS E HORÁRIOS PASSADOS ---
@@ -103,12 +104,12 @@ with aba1:
         for h in horarios_todos:
             dt_verificar = datetime.combine(data_atendimento, h)
             
-            # Só bloqueia se a data selecionada for EXATAMENTE o dia de hoje no Brasil
+            # Só bloqueia horários se a data escolhida for RIGOROSAMENTE o dia de hoje
             if data_atendimento == hoje_dt.date():
-                if dt_verificar.time() < hoje_dt.time():
+                if h < hoje_dt.time():
                     continue
                 
-            ocupado = any(ag["profissional"] == profissional and ag["data_hora"] == dt_verificar for ag in lista_agendamentos)
+            ocupado = any(ag["profissional"] == profesional and ag["data_hora"] == dt_verificar for ag in lista_agendamentos)
             if not ocupado:
                 horarios_disponiveis.append(h)
         
