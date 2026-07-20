@@ -3,7 +3,6 @@ from datetime import datetime, timedelta, time as dt_time
 import json
 import os
 import urllib.parse
-import time
 
 # Configuração da página - Otimizada para Celulares e Computadores
 st.set_page_config(page_title="Barbearia do Bruno", page_icon="💈", layout="centered")
@@ -67,9 +66,8 @@ with aba1:
         servico = st.selectbox("Serviço:", list(PRECOS_SERVICOS.keys()))
         profissional = st.radio("Profissional:", ["Bruno", "Samuel"], horizontal=True)
         
-        # Correção definitiva usando o tempo local do sistema baseado na máquina/fuso do usuário
-        timestamp_local = time.time() - time.timezone
-        hoje_dt = datetime.utcfromtimestamp(timestamp_local)
+        # Correção matemática e direta para o fuso horário de Brasília (UTC -3)
+        hoje_dt = datetime.utcnow() - timedelta(hours=3)
         
         dias_semana_pt = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"]
         
@@ -85,7 +83,9 @@ with aba1:
         
         dia_semana_selecionado = data_atendimento.weekday()
         horarios_todos = []
-        inicio_expediente = datetime.combine(hoje_dt.date(), dt_time(8, 0))
+        
+        # Correção importante: a base de horários do dia gerado deve usar a data do atendimento selecionado, não a de hoje!
+        inicio_expediente = datetime.combine(data_atendimento, dt_time(8, 0))
         
         # Gera a grade padrão de horários (Sábado vs Semana)
         if dia_semana_selecionado == 5:
@@ -104,7 +104,7 @@ with aba1:
         for h in horarios_todos:
             dt_verificar = datetime.combine(data_atendimento, h)
             
-            # Só bloqueia horários se a data escolhida for RIGOROSAMENTE o dia de hoje
+            # Só bloqueia horários passados se a data escolhida for exatamente HOJE no Brasil
             if data_atendimento == hoje_dt.date():
                 if h < hoje_dt.time():
                     continue
