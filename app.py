@@ -11,10 +11,10 @@ ARQUIVO_BANCO = "agendamentos_barbearia.json"
 
 # Definição de preços dos serviços para o relatório financeiro
 PRECOS_SERVICOS = {
-    "Cabelo": 40.0,
-    "Barba": 30.0,
-    "Combo (Cabelo + Barba)": 60.0,
-    "Sobrancelha": 15.0
+    "Cabelo": 30.0,
+    "Barba": 25.0,
+    "Combo (Cabelo + Barba)": 55.0,
+    "Sobrancelha": 10.0
 }
 
 def carregar_agendamentos():
