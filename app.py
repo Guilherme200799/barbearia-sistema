@@ -138,7 +138,7 @@ with aba1:
     minutos_inicio = 480 # 08h00
     minutos_fim = 1020 if dia_semana_selecionado == 5 else 1080  # 17h00 no sábado | 18h00 na semana
     
-    minutos_atual = minutos_inicio
+    minutos_atual = minutes_atual = minutos_inicio
     while minutos_atual <= minutos_fim:
         h_print = minutos_atual // 60
         m_print = minutos_atual % 60
@@ -176,7 +176,7 @@ with aba1:
                 lista_agendamentos.append({
                     "cliente": cliente,
                     "servico": servico,
-                    "profissional": profissional,
+                    "profissional": profesional = profissional,
                     "data_hora": dt_completo
                 })
                 lista_agendamentos.sort(key=lambda x: x["data_hora"])
@@ -241,7 +241,7 @@ with aba2:
         with sub_geral:
             renderizar_lista(lista_agendamentos)
 
-# --- ABA 3: CANCELAR AGENDAMENTO (UPGRADE VISUAL SEM SELECTBOX) ---
+# --- ABA 3: CANCELAR AGENDAMENTO (CORRIGIDO SEM DUPLICIDADE DE KEY) ---
 with aba3:
     st.header("Desmarcar Horário")
     lista_agendamentos = carregar_agendamentos()
@@ -253,7 +253,8 @@ with aba3:
         
         canc_bruno, canc_samuel, canc_geral = st.tabs(["🧔 Cancelar do Bruno", "👨 Cancelar do Samuel", "📋 Ver Todos"])
         
-        def renderizar_lista_cancelamento(lista_filtrada):
+        # Agora aceitamos o parâmetro "sufixo" para garantir chaves únicas no Streamlit
+        def renderizar_lista_cancelamento(lista_filtrada, sufixo):
             if not lista_filtrada:
                 st.info("Nenhum agendamento encontrado.")
                 return
@@ -262,8 +263,6 @@ with aba3:
                 data_str = ag["data_hora"].strftime("%d/%m/%Y")
                 hora_str = ag["data_hora"].strftime("%H:%M")
                 
-                # Encontra o índice real dele na lista principal para poder remover corretamente
-                # baseado nos dados únicos (cliente, profissional e data_hora)
                 indice_real = next((i for i, item in enumerate(lista_agendamentos) if 
                                      item["cliente"] == ag["cliente"] and 
                                      item["profissional"] == ag["profissional"] and 
@@ -272,7 +271,6 @@ with aba3:
                 if indice_real is None:
                     continue
                 
-                # Criando colunas para alinhar as informações ao lado do botão de remover de forma elegante
                 col_info, col_btn = st.columns([3, 1])
                 
                 with col_info:
@@ -285,8 +283,8 @@ with aba3:
                     """, unsafe_allow_html=True)
                 
                 with col_btn:
-                    # Botão único nativo com identificador de chave dinâmico para não duplicar no Streamlit
-                    if st.button("🗑️ Cancelar", key=f"del_{indice_real}", type="primary", use_container_width=True):
+                    # Incluído o sufixo no nome da key (ex: "del_bruno_5", "del_geral_5")
+                    if st.button("🗑️ Cancelar", key=f"del_{sufixo}_{indice_real}", type="primary", use_container_width=True):
                         lista_agendamentos.pop(indice_real)
                         salvar_agendamentos(lista_agendamentos)
                         st.success(f"Horário de {ag['cliente']} cancelado!")
@@ -296,14 +294,14 @@ with aba3:
 
         with canc_bruno:
             agenda_bruno = [ag for ag in lista_agendamentos if ag["profissional"] == "Bruno"]
-            renderizar_lista_cancelamento(agenda_bruno)
+            renderizar_lista_cancelamento(agenda_bruno, "bruno")
             
         with canc_samuel:
             agenda_samuel = [ag for ag in lista_agendamentos if ag["profissional"] == "Samuel"]
-            renderizar_lista_cancelamento(agenda_samuel)
+            renderizar_lista_cancelamento(agenda_samuel, "samuel")
             
         with canc_geral:
-            renderizar_lista_cancelamento(lista_agendamentos)
+            renderizar_lista_cancelamento(lista_agendamentos, "geral")
 
 # --- ABA 4: PAINEL ADMINISTRATIVO COM SENHA ---
 with aba4:
@@ -318,7 +316,6 @@ with aba4:
         if not lista_agendamentos:
             st.info("Ainda não há dados suficientes para gerar relatórios.")
         else:
-            # Seleção de Filtro Temporal para o Manuseio de Datas
             st.subheader("🗓️ Filtro do Relatório")
             filtro_tempo = st.selectbox(
                 "Visualizar dados de:",
@@ -326,10 +323,8 @@ with aba4:
                 key="filtro_tempo"
             )
             
-            # Pegar data atual para referência temporal
             hoje = (datetime.utcnow() - timedelta(hours=3)).date()
             
-            # Filtragem dos agendamentos com base na escolha
             agendamentos_filtrados = []
             for ag in lista_agendamentos:
                 data_ag = ag["data_hora"].date()
@@ -347,7 +342,6 @@ with aba4:
             if not agendamentos_filtrados:
                 st.warning(f"Nenhum agendamento encontrado para o período: {filtro_tempo}")
             else:
-                # Cálculos com base nos dados filtrados
                 total_atendimentos = len(agendamentos_filtrados)
                 faturamento_total = sum(PRECOS_SERVICOS.get(ag["servico"], 0) for ag in agendamentos_filtrados)
                 
