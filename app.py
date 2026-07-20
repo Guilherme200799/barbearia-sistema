@@ -3,6 +3,7 @@ from datetime import datetime, timedelta, time as dt_time
 import json
 import os
 import urllib.parse
+import time
 
 # Configuração da página - Otimizada para Celulares e Computadores
 st.set_page_config(page_title="Barbearia do Bruno", page_icon="💈", layout="centered")
