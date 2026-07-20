@@ -3,7 +3,6 @@ from datetime import datetime, timedelta, time
 import json
 import os
 import urllib.parse
-import pytz  # Força o fuso horário correto do Brasil
 
 # Configuração da página - Otimizada para Celulares e Computadores
 st.set_page_config(page_title="Barbearia do Bruno", page_icon="💈", layout="centered")
@@ -67,9 +66,9 @@ with aba1:
         servico = st.selectbox("Serviço:", list(PRECOS_SERVICOS.keys()))
         profissional = st.radio("Profissional:", ["Bruno", "Samuel"], horizontal=True)
         
-        # AJUSTE CHAVE: Pega a hora exata de Brasília/São Paulo, independente de onde o servidor está hospedado
-        fuso_br = pytz.timezone("America/Sao_Paulo")
-        hoje_dt = datetime.now(fuso_br).replace(tzinfo=None) 
+        # Correção do Fuso: Força o horário com base no fuso do servidor ajustado para o Brasil (-3 horas)
+        fuso_ajuste = timedelta(hours=-3)
+        hoje_dt = datetime.utcnow() + fuso_ajuste
         
         dias_semana_pt = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"]
         
@@ -104,7 +103,7 @@ with aba1:
         for h in horarios_todos:
             dt_verificar = datetime.combine(data_atendimento, h)
             
-            # Bloqueio de Horários Passados: Só bloqueia se a data selecionada for EXATAMENTE HOJE (no fuso do BR)
+            # Só bloqueia se a data selecionada for EXATAMENTE o dia de hoje no Brasil
             if data_atendimento == hoje_dt.date():
                 if dt_verificar.time() < hoje_dt.time():
                     continue
@@ -128,7 +127,7 @@ with aba1:
             lista_agendamentos = carregar_agendamentos()
             conflito = any(ag["profissional"] == profissional and ag["data_hora"] == dt_completo for ag in lista_agendamentos)
             
-            if not conflito:
+            if not不动 conflito:
                 lista_agendamentos.append({
                     "cliente": cliente,
                     "servico": servico,
