@@ -256,7 +256,7 @@ with aba1:
                 else:
                     st.error("Conflito de última hora detectado.")
 
-        # Rodapé com informações fixas e corretas da barbearia
+       # Rodapé com informações fixas, números visíveis e links para o WhatsApp
         formato_bruno = f"https://wa.me/{CONTATO_BRUNO}"
         formato_samuel = f"https://wa.me/{CONTATO_SAMUEL}"
         
@@ -264,8 +264,8 @@ with aba1:
         <div class="info-footer">
             <b>📍 Endereço:</b> {ENDERECO_BARBEARIA}<br>
             <b>📞 Contatos para Dúvidas:</b> 
-            <a href="{formato_bruno}" target="_blank" style="color: #23a55a; text-decoration: none; font-weight: bold;">WhatsApp Bruno</a> | 
-            <a href="{formato_samuel}" target="_blank" style="color: #23a55a; text-decoration: none; font-weight: bold;">WhatsApp Samuel</a>
+            Bruno: <a href="{formato_bruno}" target="_blank" style="color: #23a55a; text-decoration: none; font-weight: bold;">(31) 98527-1355</a> | 
+            Samuel: <a href="{formato_samuel}" target="_blank" style="color: #23a55a; text-decoration: none; font-weight: bold;">(31) 98527-1355</a>
         </div>
         """, unsafe_allow_html=True)
 
