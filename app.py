@@ -17,6 +17,11 @@ PRECOS_SERVICOS = {
     "Sobrancelha": 10.0
 }
 
+# CONTATOS REAIS DA BARBEARIA (Formatados para link internacional do WhatsApp)
+CONTATO_BRUNO = "5531985271355"  
+CONTATO_SAMUEL = "5531985271355" 
+ENDERECO_BARBEARIA = "R. dos Toureiros, 62 - Juliana"
+
 def carregar_agendamentos():
     if not os.path.exists(ARQUIVO_BANCO):
         return []
@@ -34,6 +39,7 @@ def salvar_agendamentos(dados):
     for ag in dados:
         dados_para_salvar.append({
             "cliente": ag["cliente"],
+            "telefone": ag.get("telefone", ""),
             "servico": ag["servico"],
             "profissional": ag["profissional"],
             "data_hora": ag["data_hora"].strftime("%Y-%m-%d %H:%M:%S")
@@ -50,7 +56,6 @@ st.markdown("""
         font-family: 'Inter', sans-serif !important;
     }
     
-    /* Títulos dinâmicos com base no tema do sistema */
     .main-title {
         text-align: center;
         font-size: 2.2rem;
@@ -69,16 +74,6 @@ st.markdown("""
         font-weight: 500;
     }
     
-    /* Container do Formulário acompanhando o fundo do tema */
-    .form-container {
-        background-color: var(--secondary-background-color) !important;
-        border: 1px solid rgba(128, 128, 128, 0.2) !important;
-        padding: 25px;
-        border-radius: 12px;
-        margin-top: 15px;
-    }
-    
-    /* CORREÇÃO DAS ABAS (TABS) PARA EVITAR BLOCOS PRETOS INVISÍVEIS */
     .stTabs [data-baseweb="tab-list"] {
         gap: 6px;
         background-color: var(--secondary-background-color) !important;
@@ -94,7 +89,6 @@ st.markdown("""
         padding: 8px 14px;
         font-weight: 700 !important;
     }
-    /* Aba ativa herda o contraste correto do tema atual */
     .stTabs [aria-selected="true"] {
         opacity: 1 !important;
         background-color: var(--background-color) !important;
@@ -102,13 +96,11 @@ st.markdown("""
         border-radius: 6px !important;
     }
     
-    /* Inputs de texto e seletores */
     div[data-testid="stTextInput"] input, div[data-testid="stSelectbox"] div {
         color: var(--text-color) !important;
         background-color: var(--background-color) !important;
     }
     
-    /* Botão Principal de Confirmação (Estilo Invertido/Contraste) */
     button[data-testid="baseButton-primary"] {
         background-color: var(--text-color) !important;
         color: var(--background-color) !important;
@@ -119,7 +111,6 @@ st.markdown("""
         font-size: 16px !important;
     }
     
-    /* Cards da Listagem de Clientes */
     .client-card {
         background-color: var(--secondary-background-color) !important;
         border: 1px solid rgba(128, 128, 128, 0.2) !important;
@@ -141,13 +132,21 @@ st.markdown("""
         font-size: 14px;
     }
     
-    /* Cards do Painel Admin */
     .metric-card {
         background-color: var(--secondary-background-color) !important;
         border: 1px solid rgba(128, 128, 128, 0.2) !important;
         padding: 18px;
         border-radius: 10px;
         text-align: center;
+    }
+    
+    .info-footer {
+        background-color: var(--secondary-background-color);
+        border: 1px solid rgba(128, 128, 128, 0.2);
+        padding: 15px;
+        border-radius: 10px;
+        margin-top: 30px;
+        font-size: 14px;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -160,13 +159,16 @@ aba1, aba2, aba3, aba4 = st.tabs(["📅 Novo Agendamento", "📋 Horários Marca
 
 # --- ABA 1: NOVO AGENDAMENTO ---
 with aba1:
-    # Usamos o container nativo do Streamlit que já respeita o tema perfeitamente
     with st.container():
         st.subheader("Preencha os dados abaixo")
         
         lista_agendamentos = carregar_agendamentos()
         
-        cliente = st.text_input("Nome completo do cliente:", key="input_cliente", placeholder="Ex: João Silva").strip()
+        col_c1, col_c2 = st.columns([2, 1])
+        with col_c1:
+            cliente = st.text_input("Nome completo do cliente:", key="input_cliente", placeholder="Ex: João Silva").strip()
+        with col_c2:
+            telefone = st.text_input("WhatsApp / Celular:", key="input_telefone", placeholder="Ex: 31985271355").strip()
         
         col_form1, col_form2 = st.columns(2)
         with col_form1:
@@ -222,14 +224,26 @@ with aba1:
         if botao_agendar:
             if not cliente:
                 st.error("Por favor, informe o nome.")
+            elif not telefone:
+                st.error("Por favor, informe o telefone de contato.")
             else:
                 dt_completo = datetime.combine(data_atendimento, hora_atendimento)
                 lista_agendamentos = carregar_agendamentos()
                 conflito = any(ag["profissional"] == profissional and ag["data_hora"] == dt_completo for ag in lista_agendamentos)
                 
                 if not conflito:
+                    # Limpa caracteres e ajusta o código do país/DDD automaticamente
+                    tel_limpo = "".join(filter(str.isdigit, telefone))
+                    if len(tel_limpo) == 9:  # Se digitou apenas o número com 9 dígitos
+                        tel_limpo = "5531" + tel_limpo
+                    elif len(tel_limpo) == 11:  # Se digitou DDD + número
+                        tel_limpo = "55" + tel_limpo
+                    elif not tel_limpo.startswith("55") and len(tel_limpo) >= 10:
+                        tel_limpo = "55" + tel_limpo
+
                     lista_agendamentos.append({
                         "cliente": cliente,
+                        "telefone": tel_limpo,
                         "servico": servico,
                         "profissional": profissional,
                         "data_hora": dt_completo
@@ -241,6 +255,20 @@ with aba1:
                     st.rerun()
                 else:
                     st.error("Conflito de última hora detectado.")
+
+        # Rodapé com informações fixas e corretas da barbearia
+        formato_bruno = f"https://wa.me/{CONTATO_BRUNO}"
+        formato_samuel = f"https://wa.me/{CONTATO_SAMUEL}"
+        
+        st.markdown(f"""
+        <div class="info-footer">
+            <b>📍 Endereço:</b> {ENDERECO_BARBEARIA}<br>
+            <b>📞 Contatos para Dúvidas:</b> 
+            <a href="{formato_bruno}" target="_blank" style="color: #23a55a; text-decoration: none; font-weight: bold;">WhatsApp Bruno</a> | 
+            <a href="{formato_samuel}" target="_blank" style="color: #23a55a; text-decoration: none; font-weight: bold;">WhatsApp Samuel</a>
+        </div>
+        """, unsafe_allow_html=True)
+
 # --- ABA 2: VISUALIZAR AGENDA ---
 with aba2:
     lista_agendamentos = carregar_agendamentos()
@@ -258,17 +286,20 @@ with aba2:
                 hora_str = ag["data_hora"].strftime("%H:%M")
                 msg_encodada = urllib.parse.quote(f"Olá, {ag['cliente']}! Seu horário para {ag['servico']} está confirmado para o dia {data_str} às {hora_str} com o profissional {ag['profissional']}. 💈")
                 
+                destino_whatsapp = ag.get("telefone", "")
+                link_whatsapp = f"https://wa.me/{destino_whatsapp}?text={msg_encodada}" if destino_whatsapp else f"https://wa.me/?text={msg_encodada}"
+                
                 card_html = f"""
                 <div class="client-card">
                     <div>
                         <span style="font-size: 16px; font-weight: 700; color: var(--text-color);">{ag['cliente']}</span>
                         <span style="font-size: 14px; color: var(--text-color); opacity: 0.8;"> • {ag['servico']}</span>
                         <div style="font-size: 13px; color: var(--text-color); opacity: 0.7; margin-top: 4px;">
-                            📅 {data_str} às <b>{hora_str}</b> | Barbeiro: {ag['profissional']}
+                            📅 {data_str} às <b>{hora_str}</b> | Barbeiro: {ag['profissional']} {f'| 📱 {ag["telefone"]}' if ag.get("telefone") else ''}
                         </div>
                     </div>
                     <div>
-                        <a href="https://wa.me/?text={msg_encodada}" target="_blank" class="whatsapp-btn">Avisar</a>
+                        <a href="{link_whatsapp}" target="_blank" class="whatsapp-btn">Avisar</a>
                     </div>
                 </div>
                 """
@@ -329,7 +360,6 @@ with aba4:
             filtro_tempo = st.selectbox("Período:", ["Todo o Período", "Este Mês", "Esta Semana"])
             hoje = (datetime.utcnow() - timedelta(hours=3)).date()
             
-            # Filtragem por período
             agendamentos_filtrados = []
             for ag in lista_agendamentos:
                 data_ag = ag["data_hora"].date()
@@ -340,18 +370,15 @@ with aba4:
                 agendamentos_filtrados.append(ag)
             
             if agendamentos_filtrados:
-                # Cálculos Gerais
                 total_atendimentos = len(agendamentos_filtrados)
                 faturamento_total = sum(PRECOS_SERVICOS.get(ag["servico"], 0) for ag in agendamentos_filtrados)
                 
-                # Separação por Profissional
                 ag_bruno = [ag for ag in agendamentos_filtrados if ag["profissional"] == "Bruno"]
                 ag_samuel = [ag for ag in agendamentos_filtrados if ag["profissional"] == "Samuel"]
                 
                 fat_bruno = sum(PRECOS_SERVICOS.get(ag["servico"], 0) for ag in ag_bruno)
                 fat_samuel = sum(PRECOS_SERVICOS.get(ag["servico"], 0) for ag in ag_samuel)
                 
-                # Contagem de serviços individual e total
                 contagem_servicos = {s: {"Bruno": 0, "Samuel": 0, "Total": 0} for s in PRECOS_SERVICOS.keys()}
                 for ag in agendamentos_filtrados:
                     s = ag["servico"]
@@ -360,7 +387,6 @@ with aba4:
                         contagem_servicos[s][p] += 1
                         contagem_servicos[s]["Total"] += 1
 
-                # Descobrir o serviço que mais rendeu (Faturamento por serviço)
                 def servico_mais_rentavel(lista_ag):
                     if not lista_ag:
                         return "Nenhum"
@@ -373,7 +399,6 @@ with aba4:
                 mais_rentavel_bruno = servico_mais_rentavel(ag_bruno)
                 mais_rentavel_samuel = servico_mais_rentavel(ag_samuel)
                 
-                # --- LAYOUT DO PAINEL ---
                 st.markdown("<h3 style='margin-top:20px;'>Resumo Geral</h3>", unsafe_allow_html=True)
                 col_m1, col_m2 = st.columns(2)
                 with col_m1:
@@ -384,7 +409,6 @@ with aba4:
                 st.markdown("<h3 style='margin-top:25px;'>Desempenho por Barbeiro</h3>", unsafe_allow_html=True)
                 col_b1, col_b2 = st.columns(2)
                 
-                # Bloco do Bruno
                 with col_b1:
                     st.markdown(f"""
                     <div class="metric-card" style="text-align: left; padding: 20px;">
@@ -397,7 +421,6 @@ with aba4:
                     </div>
                     """, unsafe_allow_html=True)
                 
-                # Bloco do Samuel
                 with col_b2:
                     st.markdown(f"""
                     <div class="metric-card" style="text-align: left; padding: 20px;">
@@ -410,7 +433,6 @@ with aba4:
                     </div>
                     """, unsafe_allow_html=True)
                 
-                # Seção: Quantidade de Serviços (Montagem Segura em Linha Única)
                 st.markdown("<h3 style='margin-top:25px;'>Quantidade de Serviços</h3>", unsafe_allow_html=True)
                 
                 linhas_html = ""
