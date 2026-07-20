@@ -61,63 +61,60 @@ with aba1:
     st.header("Marcar Horário")
     lista_agendamentos = carregar_agendamentos()
     
-    with st.form("form_agendamento", clear_on_submit=True):
-        cliente = st.text_input("Nome do Cliente:").strip()
-        servico = st.selectbox("Serviço:", list(PRECOS_SERVICOS.keys()))
-        profissional = st.radio("Profissional:", ["Bruno", "Samuel"], horizontal=True)
+    # Removido o st.form para permitir atualização dinâmica dos horários ao mudar a data
+    cliente = st.text_input("Nome do Cliente:", key="input_cliente").strip()
+    servico = st.selectbox("Serviço:", list(PRECOS_SERVICOS.keys()), key="select_servico")
+    profissional = st.radio("Profissional:", ["Bruno", "Samuel"], horizontal=True, key="radio_prof")
+    
+    # Horário atual de Brasília (UTC -3)
+    hoje_dt = datetime.utcnow() - timedelta(hours=3)
+    
+    dias_semana_pt = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"]
+    
+    opcoes_datas = []
+    for i in range(30):
+        futuro = hoje_dt + timedelta(days=i)
+        if futuro.weekday() != 6: # Ignora domingos
+            texto_data = f"{futuro.strftime('%d/%m/%Y')} ({dias_semana_pt[futuro.weekday()]})"
+            opcoes_datas.append((futuro.date(), texto_data))
+    
+    data_selecionada = st.selectbox("Escolha a Data:", opcoes_datas, format_func=lambda x: x[1], key="select_data")
+    data_atendimento = data_selecionada[0]
+    
+    dia_semana_selecionado = data_atendimento.weekday()
+    horarios_todos = []
+    
+    # Geração manual e estrita da grade de horários
+    minutos_inicio = 480 # 08h00
+    minutos_fim = 1020 if dia_semana_selecionado == 5 else 1080  # 17h00 no sábado | 18h00 na semana
+    
+    minutos_atual = minutos_inicio
+    while minutos_atual <= minutos_fim:
+        h_print = minutos_atual // 60
+        m_print = minutos_atual % 60
+        horarios_todos.append(dt_time(h_print, m_print))
+        minutos_atual += 40
+    
+    # --- FILTRO DE HORÁRIOS OCUPADOS E HORÁRIOS PASSADOS ---
+    horarios_disponiveis = []
+    for h in horarios_todos:
+        dt_verificar = datetime.combine(data_atendimento, h)
         
-        # Horário atual de Brasília (UTC -3)
-        hoje_dt = datetime.utcnow() - timedelta(hours=3)
-        
-        dias_semana_pt = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"]
-        
-        opcoes_datas = []
-        for i in range(30):
-            futuro = hoje_dt + timedelta(days=i)
-            if futuro.weekday() != 6: # Ignora domingos
-                texto_data = f"{futuro.strftime('%d/%m/%Y')} ({dias_semana_pt[futuro.weekday()]})"
-                opcoes_datas.append((futuro.date(), texto_data))
-        
-        data_selecionada = st.selectbox("Escolha a Data:", opcoes_datas, format_func=lambda x: x[1])
-        data_atendimento = data_selecionada[0]
-        
-        dia_semana_selecionado = data_atendimento.weekday()
-        horarios_todos = []
-        
-        # CORREÇÃO DEFINITIVA: Geração manual da grade de horários de 40 em 40 minutos baseada em minutos absolutos do dia
-        # 8h00 = 480 minutos a partir da meia-noite
-        minutos_inicio = 480 
-        
-        # Define o fim do expediente em minutos absolutos (Sábado até 17h, Semana até 18h)
-        minutos_fim = 1020 if dia_semana_selecionado == 5 else 1080  # 1020 = 17h00 | 1080 = 18h00
-        
-        minutos_atual = minutos_inicio
-        while minutos_atual <= minutos_fim:
-            h_print = minutos_atual // 60
-            m_print = minutos_atual % 60
-            horarios_todos.append(dt_time(h_print, m_print))
-            minutos_atual += 40
-        
-        # --- FILTRO DE HORÁRIOS OCUPADOS E HORÁRIOS PASSADOS ---
-        horarios_disponiveis = []
-        for h in horarios_todos:
-            dt_verificar = datetime.combine(data_atendimento, h)
+        # AGORA SIM: Só filtra horários passados se a data selecionada for REALMENTE hoje
+        if data_atendimento == hoje_dt.date():
+            if h < hoje_dt.time():
+                continue
             
-            # Só filtra horários que já passaram se o dia selecionado for HOJE
-            if data_atendimento == hoje_dt.date():
-                if h < hoje_dt.time():
-                    continue
-                
-            ocupado = any(ag["profissional"] == profissional and ag["data_hora"] == dt_verificar for ag in lista_agendamentos)
-            if not ocupado:
-                horarios_disponiveis.append(h)
-        
-        if horarios_disponiveis:
-            hora_atendimento = st.selectbox("Horário Disponível:", horarios_disponiveis, format_func=lambda x: x.strftime("%H:%M"))
-            botao_agendar = st.form_submit_button("Confirmar Agendamento", use_container_width=True)
-        else:
-            st.warning("⚠️ Todos os horários para este profissional nesta data já estão preenchidos ou indisponíveis!")
-            botao_agendar = False
+        ocupado = any(ag["profissional"] == profissional and ag["data_hora"] == dt_verificar for ag in lista_agendamentos)
+        if not ocupado:
+            horarios_disponiveis.append(h)
+    
+    if horarios_disponiveis:
+        hora_atendimento = st.selectbox("Horário Disponível:", horarios_disponiveis, format_func=lambda x: x.strftime("%H:%M"), key="select_hora")
+        botao_agendar = st.button("Confirmar Agendamento", use_container_width=True, type="primary")
+    else:
+        st.warning("⚠️ Todos os horários para este profissional nesta data já estão preenchidos ou indisponíveis!")
+        botao_agendar = False
 
     if botao_agendar:
         if not cliente:
@@ -137,6 +134,7 @@ with aba1:
                 lista_agendamentos.sort(key=lambda x: x["data_hora"])
                 salvar_agendamentos(lista_agendamentos)
                 st.success(f"🎉 Agendamento realizado para {cliente}!")
+                time.sleep(1) # Pequena pausa para o usuário ver o sucesso antes de recarregar
                 st.rerun()
             else:
                 st.error("Este horário acabou de ser preenchido por outra pessoa.")
@@ -179,8 +177,8 @@ with aba3:
             texto = f"{ag['data_hora'].strftime('%d/%m %H:%M')} - {ag['cliente']} ({ag['profissional']})"
             opcoes_cancelar.append((i, texto))
             
-        selecionado = st.selectbox("Escolha o agendamento que deseja remover:", opcoes_cancelar, format_func=lambda x: x[1])
-        botao_cancelar = st.button("Remover Agendamento da Lista", type="primary", use_container_width=True)
+        selecionado = st.selectbox("Escolha o agendamento que deseja remover:", opcoes_cancelar, format_func=lambda x: x[1], key="select_cancelar")
+        botao_cancelar = st.button("Remover Agendamento da Lista", type="primary", use_container_width=True, key="btn_cancelar")
         
         if botao_cancelar:
             indice_para_remover = selecionado[0]
@@ -193,7 +191,7 @@ with aba3:
 with aba4:
     st.header("Área Restrita")
     
-    senha = st.text_input("Digite a senha de administrador:", type="password")
+    senha = st.text_input("Digite a senha de administrador:", type="password", key="input_senha")
     
     if senha == "admin123":
         st.success("🔓 Acesso liberado!")
