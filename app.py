@@ -3,6 +3,7 @@ from datetime import datetime, timedelta, time
 import json
 import os
 import urllib.parse
+import pytz  # Força o fuso horário correto do Brasil
 
 # Configuração da página - Otimizada para Celulares e Computadores
 st.set_page_config(page_title="Barbearia do Bruno", page_icon="💈", layout="centered")
@@ -11,10 +12,10 @@ ARQUIVO_BANCO = "agendamentos_barbearia.json"
 
 # Definição de preços dos serviços para o relatório financeiro
 PRECOS_SERVICOS = {
-    "Cabelo": 30.0,
-    "Barba": 25.0,
-    "Combo (Cabelo + Barba)": 55.0,
-    "Sobrancelha": 10.0
+    "Cabelo": 40.0,
+    "Barba": 30.0,
+    "Combo (Cabelo + Barba)": 60.0,
+    "Sobrancelha": 15.0
 }
 
 def carregar_agendamentos():
@@ -50,11 +51,11 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.title("💈 Barbearia Preto & Branco")
+st.title("💈 Barbearia do Bruno & Samuel")
 st.subheader("Sistema de Gestão de Agendamentos")
 
-# Criação das abas incluindo o novo Painel Admin
-aba1, aba2, aba3, aba4 = st.tabs(["📅 Agendar Horário", "📋 Agenda", "❌ Cancelar Horário", "📊 Painel Admin"])
+# Criação das abas incluindo o Painel Admin
+aba1, aba2, aba3, aba4 = st.tabs(["📅 Agendar", "📋 Agenda", "❌ Cancelar", "📊 Painel Admin"])
 
 # --- ABA 1: NOVO AGENDAMENTO ---
 with aba1:
@@ -66,8 +67,11 @@ with aba1:
         servico = st.selectbox("Serviço:", list(PRECOS_SERVICOS.keys()))
         profissional = st.radio("Profissional:", ["Bruno", "Samuel"], horizontal=True)
         
-        hoje_dt = datetime.today()
-        dias_semana_pt = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"]
+        # AJUSTE CHAVE: Pega a hora exata de Brasília/São Paulo, independente de onde o servidor está hospedado
+        fuso_br = pytz.timezone("America/Sao_Paulo")
+        hoje_dt = datetime.now(fuso_br).replace(tzinfo=None) 
+        
+        dias_semana_pt = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"]
         
         opcoes_datas = []
         for i in range(30):
@@ -81,7 +85,7 @@ with aba1:
         
         dia_semana_selecionado = data_atendimento.weekday()
         horarios_todos = []
-        inicio_expediente = datetime.combine(datetime.today(), time(8, 0))
+        inicio_expediente = datetime.combine(hoje_dt.date(), time(8, 0))
         
         # Gera a grade padrão de horários (Sábado vs Semana)
         if dia_semana_selecionado == 5:
@@ -95,14 +99,15 @@ with aba1:
                 if hora_gerada <= time(18, 0):
                     horarios_todos.append(hora_gerada)
         
-        # --- FILTRO DE HORÁRIOS OCUPADOS E HORÁRIOS PASSADOS (CORRIGIDO) ---
+        # --- FILTRO DE HORÁRIOS OCUPADOS E HORÁRIOS PASSADOS ---
         horarios_disponiveis = []
         for h in horarios_todos:
             dt_verificar = datetime.combine(data_atendimento, h)
             
-            # Bloqueio de Horários Passados CORRIGIDO: Só aplica se for HOJE
-            if data_atendimento == hoje_dt.date() and dt_verificar < hoje_dt:
-                continue
+            # Bloqueio de Horários Passados: Só bloqueia se a data selecionada for EXATAMENTE HOJE (no fuso do BR)
+            if data_atendimento == hoje_dt.date():
+                if dt_verificar.time() < hoje_dt.time():
+                    continue
                 
             ocupado = any(ag["profissional"] == profissional and ag["data_hora"] == dt_verificar for ag in lista_agendamentos)
             if not ocupado:
@@ -145,19 +150,16 @@ with aba2:
     if not lista_agendamentos:
         st.info("Nenhum agendamento marcado no momento.")
     else:
-        # Modo de visualização limpo focado em cartões touch para celulares
         for ag in lista_agendamentos:
             data_str = ag["data_hora"].strftime("%d/%m/%Y")
             hora_str = ag["data_hora"].strftime("%H:%M")
             
-            # Caixa estilizada para cada cliente
             with st.container():
                 col1, col2 = st.columns([3, 1])
                 with col1:
                     st.write(f"**🟢 {ag['cliente']}** — {ag['servico']}")
                     st.caption(f"📅 {data_str} às {hora_str} | Barber: {ag['profissional']}")
                 with col2:
-                    # Geração do link de envio de mensagem automática para o WhatsApp
                     msg = f"Olá, {ag['cliente']}! Seu horário para {ag['servico']} está confirmado para o dia {data_str} às {hora_str} com o profissional {ag['profissional']}. Obrigado! 💈"
                     msg_encodada = urllib.parse.quote(msg)
                     link_whatsapp = f"https://wa.me/?text={msg_encodada}"
@@ -201,14 +203,12 @@ with aba4:
         if not lista_agendamentos:
             st.info("Ainda não há dados suficientes para gerar relatórios.")
         else:
-            # Cálculos financeiros baseados nos preços definidos
             total_atendimentos = len(lista_agendamentos)
             faturamento_total = sum(PRECOS_SERVICOS.get(ag["servico"], 0) for ag in lista_agendamentos)
             
             faturamento_bruno = sum(PRECOS_SERVICOS.get(ag["servico"], 0) for ag in lista_agendamentos if ag["profissional"] == "Bruno")
             faturamento_samuel = sum(PRECOS_SERVICOS.get(ag["servico"], 0) for ag in lista_agendamentos if ag["profissional"] == "Samuel")
             
-            # Indicadores visuais principais
             m1, m2 = st.columns(2)
             m1.metric("Faturamento Bruto Geral", f"R$ {faturamento_total:,.2f}")
             m2.metric("Total de Agendamentos", total_atendimentos)
@@ -218,13 +218,11 @@ with aba4:
             c1.metric("Faturamento do Bruno", f"R$ {faturamento_bruno:,.2f}")
             c2.metric("Faturamento do Samuel", f"R$ {faturamento_samuel:,.2f}")
             
-            # Contagem de serviços mais procurados
             st.subheader("Serviços Mais Procurados")
             contagem_servicos = {}
             for ag in lista_agendamentos:
                 contagem_servicos[ag["servico"]] = contagem_servicos.get(ag["servico"], 0) + 1
             
-            # Exibe em formato de progresso simples adaptado para celular
             for serv, qtd in contagem_servicos.items():
                 st.write(f"**{serv}**: {qtd} atendimentos")
                 st.progress(min(qtd / total_atendimentos, 1.0))
