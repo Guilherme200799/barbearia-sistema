@@ -52,9 +52,9 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.title("💈 Barbearia Preto & Branco")
-st.subheader("Gestão de Agendamentos")
+st.subheader("Sistema de Gestão de Agendamentos")
 
-# Criação das abas incluindo o Painel Admin
+# Criação das abas atualizadas conforme solicitado
 aba1, aba2, aba3, aba4 = st.tabs(["📅 Agendar Horário", "📋 Horários Marcados", "❌ Cancelar Horário", "📊 Painel Admin"])
 
 # --- ABA 1: NOVO AGENDAMENTO ---
@@ -88,7 +88,7 @@ with aba1:
     minutos_fim = 1020 if dia_semana_selecionado == 5 else 1080  # 17h00 no sábado | 18h00 na semana
     
     minutos_atual = minutos_inicio
-    while minutes_atual <= minutos_fim:
+    while minutos_atual <= minutos_fim:
         h_print = minutos_atual // 60
         m_print = minutos_atual % 60
         horarios_todos.append(dt_time(h_print, m_print))
@@ -144,7 +144,6 @@ with aba2:
     if not lista_agendamentos:
         st.info("Nenhum agendamento marcado no momento.")
     else:
-        # Criação de sub-abas dentro da própria agenda para filtrar a visão
         sub_bruno, sub_samuel, sub_geral = st.tabs(["🧔 Agenda do Bruno", "👨 Agenda do Samuel", "📋 Ver Geral"])
         
         def renderizar_lista(lista_filtrada):
