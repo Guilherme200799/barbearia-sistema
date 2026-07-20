@@ -41,10 +41,10 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.title("💈 Barbearia do Bruno & Samuel")
+st.title("💈 Barbearia Preto e Branco")
 st.subheader("Sistema de Gestão de Agendamentos")
 
-aba1, aba2, aba3 = st.tabs(["📅 Agendar", "📋 Agenda", "❌ Cancelar"])
+aba1, aba2, aba3 = st.tabs(["📅 Agendar Horário", "📋 Horários Marcados", "❌ Cancelar Horário"])
 
 # --- ABA 1: NOVO AGENDAMENTO ---
 with aba1:
