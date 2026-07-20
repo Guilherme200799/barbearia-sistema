@@ -5,7 +5,7 @@ import os
 import urllib.parse
 import time
 
-# Configuração da página - Otimizada para leitura e contraste
+# Configuração da página
 st.set_page_config(page_title="Barbearia Preto & Branco", page_icon="💈", layout="centered")
 
 ARQUIVO_BANCO = "agendamentos_barbearia.json"
@@ -41,23 +41,23 @@ def salvar_agendamentos(dados):
     with open(ARQUIVO_BANCO, "w", encoding="utf-8") as f:
         json.dump(dados_para_salvar, f, ensure_ascii=False, indent=4)
 
-# UI DESIGN DE ALTO CONTRASTE (Fundo claro, textos escuros e botões destacados)
+# RESET TOTAL DE CORES - FORÇANDO PRETO E BRANCO DE ALTO CONTRASTE INDEPENDENTE DO TEMA DO STREAMLIT
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     
-    /* Forçar fundo claro geral */
-    html, body, [data-testid="stAppViewContainer"], [data-testid="stHeader"] {
-        font-family: 'Inter', sans-serif;
-        background-color: #f8f9fa !important;
+    /* Força fundo branco em absolutamente tudo */
+    html, body, [data-testid="stAppViewContainer"], [data-testid="stHeader"], [data-testid="stMainBlockContainer"] {
+        font-family: 'Inter', sans-serif !important;
+        background-color: #ffffff !important;
     }
     
-    /* Títulos principais pretos bem visíveis */
+    /* Títulos e Textos Gerais em Preto Puro */
     .main-title {
         text-align: center;
         font-size: 2.2rem;
         font-weight: 700;
-        color: #1a1a1a !important;
+        color: #111111 !important;
         letter-spacing: -0.5px;
         margin-bottom: 2px;
         padding-top: 10px;
@@ -65,80 +65,84 @@ st.markdown("""
     .main-subtitle {
         text-align: center;
         font-size: 1rem;
-        color: #4a5568 !important;
+        color: #444444 !important;
         margin-bottom: 25px;
         font-weight: 500;
     }
     
-    /* Títulos de seções internos */
-    h3, .stMarkdown h3 {
-        color: #1a1a1a !important;
-        font-weight: 700 !important;
-        font-size: 1.3rem !important;
+    /* Forçar cabeçalhos, labels e parágrafos do markdown para preto */
+    h1, h2, h3, h4, p, label, [data-testid="stWidgetLabel"] p, span {
+        color: #111111 !important;
+        font-weight: 600 !important;
     }
     
-    /* Abas legíveis com fundo cinza claro */
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 6px;
-        background-color: #e2e8f0 !important;
-        padding: 6px;
-        border-radius: 10px;
-    }
-    .stTabs [data-baseweb="tab"] {
-        color: #4a5568 !important;
-        border-radius: 6px;
-        padding: 8px 14px;
-        font-weight: 600;
-    }
-    .stTabs [aria-selected="true"] {
-        color: #ffffff !important;
-        background-color: #1a1a1a !important;
-        box-sizing: border-box;
-    }
-    
-    /* Container do formulário branco com borda fina escura */
+    /* Caixa do formulário com bordas pretas nítidas */
     .form-container {
         background-color: #ffffff !important;
-        border: 1px solid #cbd5e1;
+        border: 2px solid #111111 !important;
         padding: 25px;
         border-radius: 12px;
         margin-top: 15px;
-        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
     }
     
-    /* Forçar labels/textos dos inputs a ficarem pretos */
-    label, [data-testid="stWidgetLabel"] p {
-        color: #1a1a1a !important;
-        font-weight: 600 !important;
-        font-size: 14px !important;
+    /* Ajustando o visual das abas (Tabs) para texto preto legível */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 6px;
+        background-color: #eeeeee !important;
+        padding: 6px;
+        border-radius: 10px;
+        border-bottom: none !important;
+    }
+    .stTabs [data-baseweb="tab"] {
+        color: #111111 !important;
+        background-color: transparent !important;
+        border-radius: 6px;
+        padding: 8px 14px;
+        font-weight: 700 !important;
+    }
+    .stTabs [aria-selected="true"] {
+        color: #ffffff !important;
+        background-color: #111111 !important;
     }
     
-    /* Inputs do Streamlit com texto escuro interno */
-    div[data-testid="stTextInput"] input, div[data-testid="stSelectbox"] div {
-        color: #1a1a1a !important;
+    /* Inputs, Selectboxes e Radio Buttons com fundo branco e borda preta */
+    div[data-testid="stTextInput"] input, div[data-testid="stSelectbox"] div, div[data-testid="stNumberInput"] input {
+        color: #111111 !important;
         background-color: #ffffff !important;
+        border: 2px solid #111111 !important;
+        border-radius: 8px !important;
     }
     
-    /* Botão Principal de Confirmação Preto e Branco */
+    /* Texto interno selecionado dentro das caixas de opções */
+    div[data-baseweb="select"] * {
+        color: #111111 !important;
+    }
+    
+    /* Radio Buttons (Opção do Barbeiro) */
+    div[data-testid="stRadio"] div {
+        color: #111111 !important;
+    }
+    
+    /* Botão Principal de Confirmação em Preto Puro com Texto Branco */
     button[data-testid="baseButton-primary"] {
-        background-color: #1a1a1a !important;
+        background-color: #111111 !important;
         color: #ffffff !important;
         font-weight: 700 !important;
-        border: none !important;
+        border: 2px solid #111111 !important;
         border-radius: 8px !important;
-        height: 48px !important;
-        font-size: 15px !important;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1) !important;
+        height: 50px !important;
+        font-size: 16px !important;
+        cursor: pointer !important;
     }
     button[data-testid="baseButton-primary"]:hover {
-        background-color: #000000 !important;
-        transform: translateY(-1px);
+        background-color: #333333 !important;
+        border-color: #333333 !important;
     }
     
-    /* Cards de exibição dos clientes */
+    /* Cards de agendamento na listagem */
     .client-card {
         background-color: #ffffff !important;
-        border: 1px solid #cbd5e1;
+        border: 2px solid #111111 !important;
         padding: 16px;
         border-radius: 10px;
         margin-bottom: 10px;
@@ -147,19 +151,20 @@ st.markdown("""
         align-items: center;
     }
     .whatsapp-btn {
-        background-color: #22c55e !important;
-        color: white !important;
+        background-color: #25D366 !important;
+        color: #ffffff !important;
         padding: 8px 16px;
         border-radius: 6px;
-        font-weight: 600;
+        font-weight: 700;
         text-decoration: none;
-        font-size: 13px;
+        font-size: 14px;
+        border: 1px solid #1ea952;
     }
     
     /* Cards do Painel Admin */
     .metric-card {
         background-color: #ffffff !important;
-        border: 1px solid #cbd5e1;
+        border: 2px solid #111111 !important;
         padding: 18px;
         border-radius: 10px;
         text-align: center;
@@ -167,7 +172,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Cabeçalho limpo com alto contraste
+# Cabeçalho
 st.markdown('<div class="main-title">💈 BARBEARIA PRETO & BRANCO</div>', unsafe_allow_html=True)
 st.markdown('<div class="main-subtitle">Agendamento Online & Gestão Integrada</div>', unsafe_allow_html=True)
 
@@ -209,7 +214,7 @@ with aba1:
     minutos_fim = 1020 if dia_semana_selecionado == 5 else 1080
     
     minutos_atual = minutos_inicio
-    while minutos_atual <= minutos_fim:
+    while minutes_atual <= minutos_fim:
         h_print = minutos_atual // 60
         m_print = minutos_atual % 60
         horarios_todos.append(dt_time(h_print, m_print))
@@ -267,7 +272,7 @@ with aba2:
         
         def renderizar_lista(lista_filtrada):
             if not lista_filtrada:
-                st.markdown("<p style='color:#4a5568;'>Sem horários marcados.</p>", unsafe_allow_html=True)
+                st.markdown("<p style='color:#111111;'>Sem horários marcados.</p>", unsafe_allow_html=True)
                 return
             for ag in lista_filtrada:
                 data_str = ag["data_hora"].strftime("%d/%m/%Y")
@@ -277,9 +282,9 @@ with aba2:
                 card_html = f"""
                 <div class="client-card">
                     <div>
-                        <span style="font-size: 16px; font-weight: 600; color: #1a1a1a;">{ag['cliente']}</span>
-                        <span style="font-size: 14px; color: #4a5568;"> • {ag['servico']}</span>
-                        <div style="font-size: 13px; color: #4a5568; margin-top: 4px;">
+                        <span style="font-size: 16px; font-weight: 700; color: #111111;">{ag['cliente']}</span>
+                        <span style="font-size: 14px; color: #333333;"> • {ag['servico']}</span>
+                        <div style="font-size: 13px; color: #444444; margin-top: 4px;">
                             📅 {data_str} às <b>{hora_str}</b> | Barbeiro: {ag['profissional']}
                         </div>
                     </div>
@@ -317,8 +322,8 @@ with aba3:
                 with col_info:
                     st.markdown(f"""
                     <div style="padding: 5px 0;">
-                        <span style="font-size: 15px; font-weight: 600; color: #e11d48;">{ag['cliente']}</span><br>
-                        <span style="font-size: 13px; color: #1a1a1a;">📅 {data_str} às {hora_str} | {ag['servico']}</span>
+                        <span style="font-size: 15px; font-weight: 700; color: #b91c1c;">{ag['cliente']}</span><br>
+                        <span style="font-size: 13px; color: #111111;">📅 {data_str} às {hora_str} | {ag['servico']}</span>
                     </div>
                     """, unsafe_allow_html=True)
                 with col_btn:
@@ -358,6 +363,6 @@ with aba4:
                 
                 col_m1, col_m2 = st.columns(2)
                 with col_m1:
-                    st.markdown(f'<div class="metric-card"><span style="color:#4a5568;font-size:13px;font-weight:600;">Faturamento</span><br><span style="font-size:24px;font-weight:700;color:#16a34a;">R$ {faturamento:,.2f}</span></div>', unsafe_allow_html=True)
+                    st.markdown(f'<div class="metric-card"><span style="color:#111111;font-size:14px;font-weight:700;">Faturamento</span><br><span style="font-size:24px;font-weight:700;color:#16a34a;">R$ {faturamento:,.2f}</span></div>', unsafe_allow_html=True)
                 with col_m2:
-                    st.markdown(f'<div class="metric-card"><span style="color:#4a5568;font-size:13px;font-weight:600;">Atendimentos</span><br><span style="font-size:24px;font-weight:700;color:#1a1a1a;">{total}</span></div>', unsafe_allow_html=True)
+                    st.markdown(f'<div class="metric-card"><span style="color:#111111;font-size:14px;font-weight:700;">Atendimentos</span><br><span style="font-size:24px;font-weight:700;color:#111111;">{total}</span></div>', unsafe_allow_html=True)
