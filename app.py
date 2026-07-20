@@ -42,7 +42,7 @@ def salvar_agendamentos(dados):
     with open(ARQUIVO_BANCO, "w", encoding="utf-8") as f:
         json.dump(dados_para_salvar, f, ensure_ascii=False, indent=4)
 
-# Estilização responsiva para celulares e cartões do painel
+# Estilização responsiva e componentes customizados
 st.markdown("""
     <style>
     .stTabs [data-baseweb="tab"] { font-size: 15px; padding: 10px; }
@@ -58,6 +58,40 @@ st.markdown("""
         text-align: center;
         box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         margin-bottom: 10px;
+    }
+
+    /* Estilo para os cards de agendamento na lista de Horários Marcados */
+    .client-card {
+        background-color: #ffffff;
+        border: 1px solid #e9ecef;
+        padding: 18px;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        margin-bottom: 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .client-info {
+        flex-grow: 1;
+    }
+    .whatsapp-btn {
+        background-color: #25D366;
+        color: white !important;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: bold;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        transition: background-color 0.2s ease;
+        cursor: pointer;
+    }
+    .whatsapp-btn:hover {
+        background-color: #1ebd59;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -147,7 +181,7 @@ with aba1:
             else:
                 st.error("Este horário acabou de ser preenchido por outra pessoa.")
 
-# --- ABA 2: VISUALIZAR AGENDA SEPARADA POR BARBEIRO ---
+# --- ABA 2: VISUALIZAR AGENDA SEPARADA POR BARBEIRO (VISUAL PREMIUM) ---
 with aba2:
     st.header("Próximos Clientes")
     lista_agendamentos = carregar_agendamentos()
@@ -165,18 +199,32 @@ with aba2:
                 data_str = ag["data_hora"].strftime("%d/%m/%Y")
                 hora_str = ag["data_hora"].strftime("%H:%M")
                 
-                with st.container():
-                    col1, col2 = st.columns([3, 1])
-                    with col1:
-                        st.write(f"**🟢 {ag['cliente']}** — {ag['servico']}")
-                        st.caption(f"📅 {data_str} às {hora_str} | Barber: {ag['profissional']}")
-                    with col2:
-                        msg = f"Olá, {ag['cliente']}! Seu horário para {ag['servico']} está confirmado para o dia {data_str} às {hora_str} com o profissional {ag['profissional']}. Obrigado! 💈"
-                        msg_encodada = urllib.parse.quote(msg)
-                        link_whatsapp = f"https://wa.me/?text={msg_encodada}"
-                        
-                        st.markdown(f'<a href="{link_whatsapp}" target="_blank"><button style="width:100%; background-color:#25D366; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer;">📲 Avisar</button></a>', unsafe_allow_html=True)
-                    st.divider()
+                # Texto da mensagem do WhatsApp
+                msg = f"Olá, {ag['cliente']}! Seu horário para {ag['servico']} está confirmado para o dia {data_str} às {hora_str} com o profissional {ag['profissional']}. Obrigado! 💈"
+                msg_encodada = urllib.parse.quote(msg)
+                link_whatsapp = f"https://wa.me/?text={msg_encodada}"
+                
+                # Renderização do Card HTML customizado integrado ao Streamlit
+                card_html = f"""
+                <div class="client-card">
+                    <div class="client-info">
+                        <span style="font-size: 18px; font-weight: bold; color: #212529;">🟢 {ag['cliente']}</span>
+                        <span style="font-size: 16px; color: #6c757d;"> — {ag['servico']}</span>
+                        <div style="font-size: 14px; color: #868e96; margin-top: 4px;">
+                            📅 {data_str} às {hora_str} | <b>Barber:</b> {ag['profissional']}
+                        </div>
+                    </div>
+                    <div>
+                        <a href="{link_whatsapp}" target="_blank" class="whatsapp-btn">
+                            <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="margin-bottom: -2px;">
+                                <path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.69-4.98c-.202-.101-1.194-.588-1.378-.653-.185-.069-.32-.103-.454.101-.135.202-.52.653-.637.786-.117.135-.235.151-.437.05-.202-.101-.852-.313-1.623-.999-.6-.535-1.005-1.199-1.123-1.401-.117-.202-.012-.311.089-.41.09-.091.202-.235.302-.354.101-.117.135-.197.202-.33.067-.136.034-.253-.017-.354-.05-.101-.454-1.093-.622-1.499-.163-.395-.331-.341-.454-.341h-.388c-.135 0-.354.05-.539.253-.185.202-.708.692-.708 1.693 0 1.001.728 1.968.829 2.101.101.135 1.433 2.187 3.474 3.069.485.21 1.001.336 1.353.447.487.155.93.133 1.282.08.393-.059 1.194-.488 1.365-.956.17-.467.17-.868.12-.956-.05-.088-.185-.138-.388-.239z"/>
+                            </svg>
+                            Avisar
+                        </a>
+                    </div>
+                </div>
+                """
+                st.markdown(card_html, unsafe_allow_html=True)
 
         with sub_bruno:
             agendamentos_bruno = [ag for ag in lista_agendamentos if ag["profissional"] == "Bruno"]
