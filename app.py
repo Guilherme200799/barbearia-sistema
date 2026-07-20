@@ -42,12 +42,23 @@ def salvar_agendamentos(dados):
     with open(ARQUIVO_BANCO, "w", encoding="utf-8") as f:
         json.dump(dados_para_salvar, f, ensure_ascii=False, indent=4)
 
-# Estilização responsiva para celulares
+# Estilização responsiva para celulares e cartões do painel
 st.markdown("""
     <style>
     .stTabs [data-baseweb="tab"] { font-size: 15px; padding: 10px; }
     button[data-testid="baseButton-secondary"] { width: 100%; height: 50px; }
     .css-1r6g72q { font-weight: bold; }
+    
+    /* Estilo para os cartões do painel administrativo */
+    .metric-card {
+        background-color: #f8f9fa;
+        border: 1px solid #e9ecef;
+        padding: 15px;
+        border-radius: 10px;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        margin-bottom: 10px;
+    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -214,29 +225,87 @@ with aba4:
         if not lista_agendamentos:
             st.info("Ainda não há dados suficientes para gerar relatórios.")
         else:
-            total_atendimentos = len(lista_agendamentos)
-            faturamento_total = sum(PRECOS_SERVICOS.get(ag["servico"], 0) for ag in lista_agendamentos)
+            # Seleção de Filtro Temporal para o Manuseio de Datas
+            st.subheader("🗓️ Filtro do Relatório")
+            filtro_tempo = st.selectbox(
+                "Visualizar dados de:",
+                ["Todo o Período", "Este Mês", "Esta Semana"],
+                key="filtro_tempo"
+            )
             
-            faturamento_bruno = sum(PRECOS_SERVICOS.get(ag["servico"], 0) for ag in lista_agendamentos if ag["profissional"] == "Bruno")
-            faturamento_samuel = sum(PRECOS_SERVICOS.get(ag["servico"], 0) for ag in lista_agendamentos if ag["profissional"] == "Samuel")
+            # Pegar data atual para referência temporal
+            hoje = (datetime.utcnow() - timedelta(hours=3)).date()
             
-            m1, m2 = st.columns(2)
-            m1.metric("Faturamento Bruto Geral", f"R$ {faturamento_total:,.2f}")
-            m2.metric("Total de Agendamentos", total_atendimentos)
-            
-            st.subheader("Desempenho por Profissional")
-            c1, c2 = st.columns(2)
-            c1.metric("Faturamento do Bruno", f"R$ {faturamento_bruno:,.2f}")
-            c2.metric("Faturamento do Samuel", f"R$ {faturamento_samuel:,.2f}")
-            
-            st.subheader("Serviços Mais Procurados")
-            contagem_servicos = {}
+            # Filtragem dos agendamentos com base na escolha
+            agendamentos_filtrados = []
             for ag in lista_agendamentos:
-                contagem_servicos[ag["servico"]] = contagem_servicos.get(ag["servico"], 0) + 1
+                data_ag = ag["data_hora"].date()
+                if filtro_tempo == "Este Mês":
+                    if data_ag.year == hoje.year and data_ag.month == hoje.month:
+                        agendamentos_filtrados.append(ag)
+                elif filtro_tempo == "Esta Semana":
+                    inicio_semana = hoje - timedelta(days=hoje.weekday())
+                    fim_semana = inicio_semana + timedelta(days=6)
+                    if inicio_semana <= data_ag <= fim_semana:
+                        agendamentos_filtrados.append(ag)
+                else:
+                    agendamentos_filtrados.append(ag)
             
-            for serv, qtd in contagem_servicos.items():
-                st.write(f"**{serv}**: {qtd} atendimentos")
-                st.progress(min(qtd / total_atendimentos, 1.0))
+            if not agendamentos_filtrados:
+                st.warning(f"Nenhum agendamento encontrado para o período: {filtro_tempo}")
+            else:
+                # Cálculos com base nos dados filtrados
+                total_atendimentos = len(agendamentos_filtrados)
+                faturamento_total = sum(PRECOS_SERVICOS.get(ag["servico"], 0) for ag in agendamentos_filtrados)
+                
+                faturamento_bruno = sum(PRECOS_SERVICOS.get(ag["servico"], 0) for ag in agendamentos_filtrados if ag["profissional"] == "Bruno")
+                faturamento_samuel = sum(PRECOS_SERVICOS.get(ag["servico"], 0) for ag in agendamentos_filtrados if ag["profissional"] == "Samuel")
+                
+                st.divider()
+                st.subheader(f"📊 Métricas Gerais — {filtro_tempo}")
+                
+                # Visual Melhorado: Blocos Visuais Organizados
+                col_m1, col_m2 = st.columns(2)
+                with col_m1:
+                    st.markdown(f"""
+                    <div class="metric-card">
+                        <span style="color:#6c757d; font-size:14px; font-weight:bold;">Faturamento Bruto</span><br>
+                        <span style="font-size:26px; font-weight:bold; color:#2e7d32;">R$ {faturamento_total:,.2f}</span>
+                    </div>
+                    """, unsafe_allow_html=True)
+                with col_m2:
+                    st.markdown(f"""
+                    <div class="metric-card">
+                        <span style="color:#6c757d; font-size:14px; font-weight:bold;">Total de Atendimentos</span><br>
+                        <span style="font-size:26px; font-weight:bold; color:#1565c0;">{total_atendimentos}</span>
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                st.subheader("👤 Desempenho por Profissional")
+                col_p1, col_p2 = st.columns(2)
+                with col_p1:
+                    st.markdown(f"""
+                    <div class="metric-card">
+                        <span style="color:#495057; font-size:14px;">Faturamento do <b>Bruno</b></span><br>
+                        <span style="font-size:22px; font-weight:bold; color:#212529;">R$ {faturamento_bruno:,.2f}</span>
+                    </div>
+                    """, unsafe_allow_html=True)
+                with col_p2:
+                    st.markdown(f"""
+                    <div class="metric-card">
+                        <span style="color:#495057; font-size:14px;">Faturamento do <b>Samuel</b></span><br>
+                        <span style="font-size:22px; font-weight:bold; color:#212529;">R$ {faturamento_samuel:,.2f}</span>
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                st.subheader("📈 Serviços Mais Procurados")
+                contagem_servicos = {}
+                for ag in agendamentos_filtrados:
+                    contagem_servicos[ag["servico"]] = contagem_servicos.get(ag["servico"], 0) + 1
+                
+                for serv, qtd in contagem_servicos.items():
+                    st.write(f"**{serv}**: {qtd} atendimento(s)")
+                    st.progress(min(qtd / total_atendimentos, 1.0))
                 
     elif senha != "":
         st.error("❌ Senha incorreta! Digite novamente.")
