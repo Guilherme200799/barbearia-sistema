@@ -160,88 +160,87 @@ aba1, aba2, aba3, aba4 = st.tabs(["📅 Novo Agendamento", "📋 Horários Marca
 
 # --- ABA 1: NOVO AGENDAMENTO ---
 with aba1:
-    st.markdown('<div class="form-container">', unsafe_allow_html=True)
-    st.subheader("Preencha os dados abaixo")
-    
-    lista_agendamentos = carregar_agendamentos()
-    
-    cliente = st.text_input("Nome completo do cliente:", key="input_cliente", placeholder="Ex: João Silva").strip()
-    
-    col_form1, col_form2 = st.columns(2)
-    with col_form1:
-        servico = st.selectbox("Escolha o Serviço:", list(PRECOS_SERVICOS.keys()), key="select_servico")
-    with col_form2:
-        profissional = st.radio("Selecione o Profissional:", ["Bruno", "Samuel"], horizontal=True, key="radio_prof")
-    
-    hoje_dt = datetime.utcnow() - timedelta(hours=3)
-    dias_semana_pt = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"]
-    
-    opcoes_datas = []
-    for i in range(30):
-        futuro = hoje_dt + timedelta(days=i)
-        if futuro.weekday() != 6:
-            texto_data = f"{futuro.strftime('%d/%m/%Y')} ({dias_semana_pt[futuro.weekday()]})"
-            opcoes_datas.append((futuro.date(), texto_data))
-    
-    col_data, col_hora = st.columns(2)
-    with col_data:
-        data_selecionada = st.selectbox("Escolha a Data:", opcoes_datas, format_func=lambda x: x[1], key="select_data")
-        data_atendimento = data_selecionada[0]
-    
-    dia_semana_selecionado = data_atendimento.weekday()
-    horarios_todos = []
-    minutos_inicio = 480
-    minutos_fim = 1020 if dia_semana_selecionado == 5 else 1080
-    
-    minutos_atual = minutos_inicio
-    while minutos_atual <= minutos_fim:
-        h_print = minutos_atual // 60
-        m_print = minutos_atual % 60
-        horarios_todos.append(dt_time(h_print, m_print))
-        minutos_atual += 40
-    
-    horarios_disponiveis = []
-    for h in horarios_todos:
-        dt_verificar = datetime.combine(data_atendimento, h)
-        if data_atendimento == hoje_dt.date() and h < hoje_dt.time():
-            continue
-        ocupado = any(ag["profissional"] == profissional and ag["data_hora"] == dt_verificar for ag in lista_agendamentos)
-        if not ocupado:
-            horarios_disponiveis.append(h)
-    
-    with col_hora:
-        if horarios_disponiveis:
-            hora_atendimento = st.selectbox("Horários Livres:", horarios_disponiveis, format_func=lambda x: x.strftime("%H:%M"), key="select_hora")
-            st.write("") 
-            botao_agendar = st.button("Confirmar Agendamento", use_container_width=True, type="primary")
-        else:
-            st.error("⚠️ Sem horários livres!")
-            botao_agendar = False
-
-    if botao_agendar:
-        if not cliente:
-            st.error("Por favor, informe o nome.")
-        else:
-            dt_completo = datetime.combine(data_atendimento, hora_atendimento)
-            lista_agendamentos = carregar_agendamentos()
-            conflito = any(ag["profissional"] == profissional and ag["data_hora"] == dt_completo for ag in lista_agendamentos)
-            
-            if not conflito:
-                lista_agendamentos.append({
-                    "cliente": cliente,
-                    "servico": servico,
-                    "profissional": profissional,
-                    "data_hora": dt_completo
-                })
-                lista_agendamentos.sort(key=lambda x: x["data_hora"])
-                salvar_agendamentos(lista_agendamentos)
-                st.success(f"🎉 Horário reservado para {cliente}!")
-                time.sleep(1)
-                st.rerun()
+    # Usamos o container nativo do Streamlit que já respeita o tema perfeitamente
+    with st.container():
+        st.subheader("Preencha os dados abaixo")
+        
+        lista_agendamentos = carregar_agendamentos()
+        
+        cliente = st.text_input("Nome completo do cliente:", key="input_cliente", placeholder="Ex: João Silva").strip()
+        
+        col_form1, col_form2 = st.columns(2)
+        with col_form1:
+            servico = st.selectbox("Escolha o Serviço:", list(PRECOS_SERVICOS.keys()), key="select_servico")
+        with col_form2:
+            profissional = st.radio("Selecione o Profissional:", ["Bruno", "Samuel"], horizontal=True, key="radio_prof")
+        
+        hoje_dt = datetime.utcnow() - timedelta(hours=3)
+        dias_semana_pt = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"]
+        
+        opcoes_datas = []
+        for i in range(30):
+            futuro = hoje_dt + timedelta(days=i)
+            if futuro.weekday() != 6:
+                texto_data = f"{futuro.strftime('%d/%m/%Y')} ({dias_semana_pt[futuro.weekday()]})"
+                opcoes_datas.append((futuro.date(), texto_data))
+        
+        col_data, col_hora = st.columns(2)
+        with col_data:
+            data_selecionada = st.selectbox("Escolha a Data:", opcoes_datas, format_func=lambda x: x[1], key="select_data")
+            data_atendimento = data_selecionada[0]
+        
+        dia_semana_selecionado = data_atendimento.weekday()
+        horarios_todos = []
+        minutos_inicio = 480
+        minutos_fim = 1020 if dia_semana_selecionado == 5 else 1080
+        
+        minutos_atual = minutos_inicio
+        while minutos_atual <= minutos_fim:
+            h_print = minutos_atual // 60
+            m_print = minutos_atual % 60
+            horarios_todos.append(dt_time(h_print, m_print))
+            minutos_atual += 40
+        
+        horarios_disponiveis = []
+        for h in horarios_todos:
+            dt_verificar = datetime.combine(data_atendimento, h)
+            if data_atendimento == hoje_dt.date() and h < hoje_dt.time():
+                continue
+            ocupado = any(ag["profissional"] == profissional and ag["data_hora"] == dt_verificar for ag in lista_agendamentos)
+            if not ocupado:
+                horarios_disponiveis.append(h)
+        
+        with col_hora:
+            if horarios_disponiveis:
+                hora_atendimento = st.selectbox("Horários Livres:", horarios_disponiveis, format_func=lambda x: x.strftime("%H:%M"), key="select_hora")
+                st.write("") 
+                botao_agendar = st.button("Confirmar Agendamento", use_container_width=True, type="primary")
             else:
-                st.error("Conflito de última hora detectado.")
-    st.markdown('</div>', unsafe_allow_html=True)
+                st.error("⚠️ Sem horários livres!")
+                botao_agendar = False
 
+        if botao_agendar:
+            if not cliente:
+                st.error("Por favor, informe o nome.")
+            else:
+                dt_completo = datetime.combine(data_atendimento, hora_atendimento)
+                lista_agendamentos = carregar_agendamentos()
+                conflito = any(ag["profissional"] == profissional and ag["data_hora"] == dt_completo for ag in lista_agendamentos)
+                
+                if not conflito:
+                    lista_agendamentos.append({
+                        "cliente": cliente,
+                        "servico": servico,
+                        "profissional": profissional,
+                        "data_hora": dt_completo
+                    })
+                    lista_agendamentos.sort(key=lambda x: x["data_hora"])
+                    salvar_agendamentos(lista_agendamentos)
+                    st.success(f"🎉 Horário reservado para {cliente}!")
+                    time.sleep(1)
+                    st.rerun()
+                else:
+                    st.error("Conflito de última hora detectado.")
 # --- ABA 2: VISUALIZAR AGENDA ---
 with aba2:
     lista_agendamentos = carregar_agendamentos()
