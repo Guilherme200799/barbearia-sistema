@@ -95,12 +95,12 @@ with aba1:
                 if hora_gerada <= time(18, 0):
                     horarios_todos.append(hora_gerada)
         
-        # --- FILTRO DE HORÁRIOS OCUPADOS E HORÁRIOS PASSADOS ---
+        # --- FILTRO DE HORÁRIOS OCUPADOS E HORÁRIOS PASSADOS (CORRIGIDO) ---
         horarios_disponiveis = []
         for h in horarios_todos:
             dt_verificar = datetime.combine(data_atendimento, h)
             
-            # Bloqueio de Horários Passados: impede se for para hoje e o horário já passou
+            # Bloqueio de Horários Passados CORRIGIDO: Só aplica se for HOJE
             if data_atendimento == hoje_dt.date() and dt_verificar < hoje_dt:
                 continue
                 
