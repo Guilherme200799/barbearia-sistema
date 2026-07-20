@@ -42,7 +42,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.title("💈 Barbearia Preto e Branco")
-st.subheader("Agendamentos")
+st.subheader("Agende seu horário")
 
 aba1, aba2, aba3 = st.tabs(["📅 Agendar Horário", "📋 Horários Marcados", "❌ Cancelar Horário"])
 
