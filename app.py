@@ -66,7 +66,7 @@ with aba1:
         servico = st.selectbox("Serviço:", list(PRECOS_SERVICOS.keys()))
         profissional = st.radio("Profissional:", ["Bruno", "Samuel"], horizontal=True)
         
-        # Correção matemática e direta para o fuso horário de Brasília (UTC -3)
+        # Horário atual de Brasília (UTC -3)
         hoje_dt = datetime.utcnow() - timedelta(hours=3)
         
         dias_semana_pt = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"]
@@ -84,7 +84,7 @@ with aba1:
         dia_semana_selecionado = data_atendimento.weekday()
         horarios_todos = []
         
-        # Correção importante: a base de horários do dia gerado deve usar a data do atendimento selecionado, não a de hoje!
+        # CORREÇÃO AQUI: O início do expediente precisa usar o dia selecionado para o cálculo do loop funcionar corretamente
         inicio_expediente = datetime.combine(data_atendimento, dt_time(8, 0))
         
         # Gera a grade padrão de horários (Sábado vs Semana)
@@ -104,7 +104,7 @@ with aba1:
         for h in horarios_todos:
             dt_verificar = datetime.combine(data_atendimento, h)
             
-            # Só bloqueia horários passados se a data escolhida for exatamente HOJE no Brasil
+            # Só bloqueia horários se a data escolhida for exatamente HOJE
             if data_atendimento == hoje_dt.date():
                 if h < hoje_dt.time():
                     continue
