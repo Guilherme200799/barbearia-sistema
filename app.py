@@ -93,13 +93,19 @@ st.markdown("""
     .whatsapp-btn:hover {
         background-color: #1ebd59;
     }
+    
+    /* Ajuste para alinhar verticalmente os botões nativos de cancelar do Streamlit nos cards */
+    div[data-testid="stColumn"] {
+        display: flex;
+        align-items: center;
+    }
     </style>
 """, unsafe_allow_html=True)
 
 st.title("💈 Barbearia Preto & Branco")
 st.subheader("Sistema de Gestão de Agendamentos")
 
-# Criação das abas atualizadas conforme solicitado
+# Criação das abas atualizadas
 aba1, aba2, aba3, aba4 = st.tabs(["📅 Agendar Horário", "📋 Horários Marcados", "❌ Cancelar Horário", "📊 Painel Admin"])
 
 # --- ABA 1: NOVO AGENDAMENTO ---
@@ -199,12 +205,10 @@ with aba2:
                 data_str = ag["data_hora"].strftime("%d/%m/%Y")
                 hora_str = ag["data_hora"].strftime("%H:%M")
                 
-                # Texto da mensagem do WhatsApp
                 msg = f"Olá, {ag['cliente']}! Seu horário para {ag['servico']} está confirmado para o dia {data_str} às {hora_str} com o profissional {ag['profissional']}. Obrigado! 💈"
                 msg_encodada = urllib.parse.quote(msg)
                 link_whatsapp = f"https://wa.me/?text={msg_encodada}"
                 
-                # Renderização do Card HTML customizado integrado ao Streamlit
                 card_html = f"""
                 <div class="client-card">
                     <div class="client-info">
@@ -237,7 +241,7 @@ with aba2:
         with sub_geral:
             renderizar_lista(lista_agendamentos)
 
-# --- ABA 3: CANCELAR AGENDAMENTO ---
+# --- ABA 3: CANCELAR AGENDAMENTO (UPGRADE VISUAL SEM SELECTBOX) ---
 with aba3:
     st.header("Desmarcar Horário")
     lista_agendamentos = carregar_agendamentos()
@@ -245,20 +249,61 @@ with aba3:
     if not lista_agendamentos:
         st.info("Nenhum agendamento disponível para exclusão.")
     else:
-        opcoes_cancelar = []
-        for i, ag in enumerate(lista_agendamentos):
-            texto = f"{ag['data_hora'].strftime('%d/%m %H:%M')} - {ag['cliente']} ({ag['profissional']})"
-            opcoes_cancelar.append((i, texto))
-            
-        selecionado = st.selectbox("Escolha o agendamento que deseja remover:", opcoes_cancelar, format_func=lambda x: x[1], key="select_cancelar")
-        botao_cancelar = st.button("Remover Agendamento da Lista", type="primary", use_container_width=True, key="btn_cancelar")
+        st.write("Selecione o profissional para listar os horários e clique em **Cancelar Horário**:")
         
-        if botao_cancelar:
-            indice_para_remover = selecionado[0]
-            lista_agendamentos.pop(indice_para_remover)
-            salvar_agendamentos(lista_agendamentos)
-            st.success("✅ Agendamento cancelado com sucesso!")
-            st.rerun()
+        canc_bruno, canc_samuel, canc_geral = st.tabs(["🧔 Cancelar do Bruno", "👨 Cancelar do Samuel", "📋 Ver Todos"])
+        
+        def renderizar_lista_cancelamento(lista_filtrada):
+            if not lista_filtrada:
+                st.info("Nenhum agendamento encontrado.")
+                return
+                
+            for ag in lista_filtrada:
+                data_str = ag["data_hora"].strftime("%d/%m/%Y")
+                hora_str = ag["data_hora"].strftime("%H:%M")
+                
+                # Encontra o índice real dele na lista principal para poder remover corretamente
+                # baseado nos dados únicos (cliente, profissional e data_hora)
+                indice_real = next((i for i, item in enumerate(lista_agendamentos) if 
+                                     item["cliente"] == ag["cliente"] and 
+                                     item["profissional"] == ag["profissional"] and 
+                                     item["data_hora"] == ag["data_hora"]), None)
+                
+                if indice_real is None:
+                    continue
+                
+                # Criando colunas para alinhar as informações ao lado do botão de remover de forma elegante
+                col_info, col_btn = st.columns([3, 1])
+                
+                with col_info:
+                    st.markdown(f"""
+                    <div style="padding: 5px 0;">
+                        <span style="font-size: 16px; font-weight: bold; color: #dc3545;">🔴 {ag['cliente']}</span>
+                        <span style="font-size: 14px; color: #495057;"> — {ag['servico']}</span><br>
+                        <span style="font-size: 13px; color: #6c757d;">📅 {data_str} às {hora_str} | Barbeiro: {ag['profissional']}</span>
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                with col_btn:
+                    # Botão único nativo com identificador de chave dinâmico para não duplicar no Streamlit
+                    if st.button("🗑️ Cancelar", key=f"del_{indice_real}", type="primary", use_container_width=True):
+                        lista_agendamentos.pop(indice_real)
+                        salvar_agendamentos(lista_agendamentos)
+                        st.success(f"Horário de {ag['cliente']} cancelado!")
+                        time.sleep(0.8)
+                        st.rerun()
+                st.divider()
+
+        with canc_bruno:
+            agenda_bruno = [ag for ag in lista_agendamentos if ag["profissional"] == "Bruno"]
+            renderizar_lista_cancelamento(agenda_bruno)
+            
+        with canc_samuel:
+            agenda_samuel = [ag for ag in lista_agendamentos if ag["profissional"] == "Samuel"]
+            renderizar_lista_cancelamento(agenda_samuel)
+            
+        with canc_geral:
+            renderizar_lista_cancelamento(lista_agendamentos)
 
 # --- ABA 4: PAINEL ADMINISTRATIVO COM SENHA ---
 with aba4:
@@ -312,7 +357,6 @@ with aba4:
                 st.divider()
                 st.subheader(f"📊 Métricas Gerais — {filtro_tempo}")
                 
-                # Visual Melhorado: Blocos Visuais Organizados
                 col_m1, col_m2 = st.columns(2)
                 with col_m1:
                     st.markdown(f"""
