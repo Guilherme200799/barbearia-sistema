@@ -324,24 +324,81 @@ with aba4:
     if senha == "admin123":
         lista_agendamentos = carregar_agendamentos()
         if not lista_agendamentos:
-            st.info("Sem dados suficientes.")
+            st.info("Sem dados suficientes para gerar relatórios.")
         else:
             filtro_tempo = st.selectbox("Período:", ["Todo o Período", "Este Mês", "Esta Semana"])
             hoje = (datetime.utcnow() - timedelta(hours=3)).date()
             
+            # Filtragem por período
             agendamentos_filtrados = []
             for ag in lista_agendamentos:
                 data_ag = ag["data_hora"].date()
-                if filtro_tempo == "Este Mês" and (data_ag.year != hoje.year or data_ag.month != hoje.month): continue
-                if filtro_tempo == "Esta Semana" and not (hoje - timedelta(days=hoje.weekday()) <= data_ag <= hoje - timedelta(days=hoje.weekday()) + timedelta(days=6)): continue
+                if filtro_tempo == "Este Mês" and (data_ag.year != hoje.year or data_ag.month != hoje.month): 
+                    continue
+                if filtro_tempo == "Esta Semana" and not (hoje - timedelta(days=hoje.weekday()) <= data_ag <= hoje - timedelta(days=hoje.weekday()) + timedelta(days=6)): 
+                    continue
                 agendamentos_filtrados.append(ag)
             
             if agendamentos_filtrados:
-                total = len(agendamentos_filtrados)
-                faturamento = sum(PRECOS_SERVICOS.get(ag["servico"], 0) for ag in agendamentos_filtrados)
+                # Cálculos Gerais
+                total_atendimentos = len(agendamentos_filtrados)
+                faturamento_total = sum(PRECOS_SERVICOS.get(ag["servico"], 0) for ag in agendamentos_filtrados)
                 
+                # Separação por Profissional
+                ag_bruno = [ag for ag in agendamentos_filtrados if ag["profissional"] == "Bruno"]
+                ag_samuel = [ag for ag in agendamentos_filtrados if ag["profissional"] == "Samuel"]
+                
+                fat_bruno = sum(PRECOS_SERVICOS.get(ag["servico"], 0) for ag in ag_bruno)
+                fat_samuel = sum(PRECOS_SERVICOS.get(ag["servico"], 0) for ag in ag_samuel)
+                
+                # Descobrir o serviço que mais rendeu (Faturamento por serviço)
+                def servico_mais_rentavel(lista_ag):
+                    if not lista_ag:
+                        return "Nenhum"
+                    rendimento_por_servico = {}
+                    for ag in lista_ag:
+                        s = ag["servico"]
+                        rendimento_por_servico[s] = rendimento_por_servico.get(s, 0) + PRECOS_SERVICOS.get(s, 0)
+                    return max(rendimento_por_servico, key=rendimento_por_servico.get)
+
+                mais_rentavel_bruno = servico_mais_rentavel(ag_bruno)
+                mais_rentavel_samuel = servico_mais_rentavel(ag_samuel)
+                
+                # --- LAYOUT DO PAINEL ---
+                st.markdown("<h3 style='margin-top:20px;'>Resumo Geral</h3>", unsafe_allow_html=True)
                 col_m1, col_m2 = st.columns(2)
                 with col_m1:
-                    st.markdown(f'<div class="metric-card"><span style="color:var(--text-color);font-size:14px;font-weight:700;">Faturamento</span><br><span style="font-size:24px;font-weight:700;color:#23a55a;">R$ {faturamento:,.2f}</span></div>', unsafe_allow_html=True)
+                    st.markdown(f'<div class="metric-card"><span style="color:var(--text-color);opacity:0.7;font-size:14px;font-weight:700;">Faturamento Total</span><br><span style="font-size:26px;font-weight:700;color:#23a55a;">R$ {faturamento_total:,.2f}</span></div>', unsafe_allow_html=True)
                 with col_m2:
-                    st.markdown(f'<div class="metric-card"><span style="color:var(--text-color);font-size:14px;font-weight:700;">Atendimentos</span><br><span style="font-size:24px;font-weight:700;color:var(--text-color);">{total}</span></div>', unsafe_allow_html=True)
+                    st.markdown(f'<div class="metric-card"><span style="color:var(--text-color);opacity:0.7;font-size:14px;font-weight:700;">Total de Atendimentos</span><br><span style="font-size:26px;font-weight:700;color:var(--text-color);">{total_atendimentos}</span></div>', unsafe_allow_html=True)
+                
+                st.markdown("<h3 style='margin-top:25px;'>Desempenho por Barbeiro</h3>", unsafe_allow_html=True)
+                col_b1, col_b2 = st.columns(2)
+                
+                # Bloco do Bruno
+                with col_b1:
+                    st.markdown(f"""
+                    <div class="metric-card" style="text-align: left; padding: 20px;">
+                        <span style="font-size: 18px; font-weight: 700; color: var(--text-color);">🧔 Bruno</span><br>
+                        <hr style="margin: 10px 0; opacity: 0.2;">
+                        <span style="font-size: 13px; color: var(--text-color); opacity: 0.7;">Faturamento:</span><br>
+                        <span style="font-size: 20px; font-weight: 700; color: var(--text-color);">R$ {fat_bruno:,.2f}</span><br><br>
+                        <span style="font-size: 13px; color: var(--text-color); opacity: 0.7;">Mais rendeu:</span><br>
+                        <span style="font-size: 15px; font-weight: 700; color: #23a55a;">{mais_rentavel_bruno}</span>
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                # Bloco do Samuel
+                with col_b2:
+                    st.markdown(f"""
+                    <div class="metric-card" style="text-align: left; padding: 20px;">
+                        <span style="font-size: 18px; font-weight: 700; color: var(--text-color);">👨 Samuel</span><br>
+                        <hr style="margin: 10px 0; opacity: 0.2;">
+                        <span style="font-size: 13px; color: var(--text-color); opacity: 0.7;">Faturamento:</span><br>
+                        <span style="font-size: 20px; font-weight: 700; color: var(--text-color);">R$ {fat_samuel:,.2f}</span><br><br>
+                        <span style="font-size: 13px; color: var(--text-color); opacity: 0.7;">Mais rendeu:</span><br>
+                        <span style="font-size: 15px; font-weight: 700; color: #23a55a;">{mais_rentavel_samuel}</span>
+                    </div>
+                    """, unsafe_allow_html=True)
+            else:
+                st.info("Nenhum agendamento encontrado para o período selecionado.")
