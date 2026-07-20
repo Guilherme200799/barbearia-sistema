@@ -11,10 +11,10 @@ ARQUIVO_BANCO = "agendamentos_barbearia.json"
 
 # Definição de preços dos serviços para o relatório financeiro
 PRECOS_SERVICOS = {
-    "Cabelo": 40.0,
-    "Barba": 30.0,
-    "Combo (Cabelo + Barba)": 60.0,
-    "Sobrancelha": 15.0
+    "Cabelo": 30.0,
+    "Barba": 25.0,
+    "Combo (Cabelo + Barba)": 55.0,
+    "Sobrancelha": 10.0
 }
 
 def carregar_agendamentos():
@@ -50,11 +50,11 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.title("💈 Barbearia do Bruno & Samuel")
-st.subheader("Sistema de Gestão de Agendamentos")
+st.title("💈 Barbearia Preto & Branco")
+st.subheader("Gestão de Agendamentos")
 
 # Criação das abas incluindo o Painel Admin
-aba1, aba2, aba3, aba4 = st.tabs(["📅 Agendar", "📋 Agenda", "❌ Cancelar", "📊 Painel Admin"])
+aba1, aba2, aba3, aba4 = st.tabs(["📅 Agendar Horário", "📋 Horários Marcados", "❌ Cancelar Horário", "📊 Painel Admin"])
 
 # --- ABA 1: NOVO AGENDAMENTO ---
 with aba1:
