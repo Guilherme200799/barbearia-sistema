@@ -51,7 +51,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.title("💈 Barbearia Preto & Branco")
-st.subheader("Gestão de Agendamentos")
+st.subheader("Endereço: R. dos Toureiros, 62 - Juliana")
 
 # Criação das abas incluindo o Painel Admin
 aba1, aba2, aba3, aba4 = st.tabs(["📅 Agendar Horário", "📋 Horários Marcados", "❌ Cancelar Horário", "📊 Painel Admin"])
