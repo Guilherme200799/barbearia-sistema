@@ -109,7 +109,7 @@ with aba1:
                 if h < hoje_dt.time():
                     continue
                 
-            ocupado = any(ag["profissional"] == profesional and ag["data_hora"] == dt_verificar for ag in lista_agendamentos)
+            ocupado = any(ag["profissional"] == profissional and ag["data_hora"] == dt_verificar for ag in lista_agendamentos)
             if not ocupado:
                 horarios_disponiveis.append(h)
         
