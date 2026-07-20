@@ -351,6 +351,15 @@ with aba4:
                 fat_bruno = sum(PRECOS_SERVICOS.get(ag["servico"], 0) for ag in ag_bruno)
                 fat_samuel = sum(PRECOS_SERVICOS.get(ag["servico"], 0) for ag in ag_samuel)
                 
+                # Contagem de serviços individual e total
+                contagem_servicos = {s: {"Bruno": 0, "Samuel": 0, "Total": 0} for s in PRECOS_SERVICOS.keys()}
+                for ag in agendamentos_filtrados:
+                    s = ag["servico"]
+                    p = ag["profissional"]
+                    if s in contagem_servicos:
+                        contagem_servicos[s][p] += 1
+                        contagem_servicos[s]["Total"] += 1
+
                 # Descobrir o serviço que mais rendeu (Faturamento por serviço)
                 def servico_mais_rentavel(lista_ag):
                     if not lista_ag:
@@ -400,5 +409,39 @@ with aba4:
                         <span style="font-size: 15px; font-weight: 700; color: #23a55a;">{mais_rentavel_samuel}</span>
                     </div>
                     """, unsafe_allow_html=True)
+                
+                # Nova Seção: Quantidade de Serviços Detalhada
+                st.markdown("<h3 style='margin-top:25px;'>Quantidade de Serviços</h3>", unsafe_allow_html=True)
+                
+                linhas_tabela = ""
+                for servico, dados in contagem_servicos.items():
+                    linhas_tabela += f"""
+                    <tr style="border-bottom: 1px solid rgba(128,128,128,0.2);">
+                        <td style="padding: 10px; font-weight: 600; color: var(--text-color);">{servico}</td>
+                        <td style="padding: 10px; text-align: center; color: var(--text-color);">{dados['Bruno']}</td>
+                        <td style="padding: 10px; text-align: center; color: var(--text-color);">{dados['Samuel']}</td>
+                        <td style="padding: 10px; text-align: center; font-weight: 700; color: #23a55a;">{dados['Total']}</td>
+                    </tr>
+                    """
+                
+                tabela_html = f"""
+                <div class="metric-card" style="padding: 15px; overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid rgba(128,128,128,0.4);">
+                                <th style="padding: 10px; color: var(--text-color);">Serviço</th>
+                                <th style="padding: 10px; text-align: center; color: var(--text-color);">Bruno</th>
+                                <th style="padding: 10px; text-align: center; color: var(--text-color);">Samuel</th>
+                                <th style="padding: 10px; text-align: center; color: var(--text-color);">Total Junto</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {linhas_tabela}
+                        </tbody>
+                    </table>
+                </div>
+                """
+                st.markdown(tabela_html, unsafe_allow_html=True)
+                
             else:
                 st.info("Nenhum agendamento encontrado para o período selecionado.")
