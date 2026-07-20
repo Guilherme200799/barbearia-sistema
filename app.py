@@ -84,27 +84,26 @@ with aba1:
         dia_semana_selecionado = data_atendimento.weekday()
         horarios_todos = []
         
-        # CORREÇÃO AQUI: O início do expediente precisa usar o dia selecionado para o cálculo do loop funcionar corretamente
-        inicio_expediente = datetime.combine(data_atendimento, dt_time(8, 0))
+        # CORREÇÃO DEFINITIVA: Geração manual da grade de horários de 40 em 40 minutos baseada em minutos absolutos do dia
+        # 8h00 = 480 minutos a partir da meia-noite
+        minutos_inicio = 480 
         
-        # Gera a grade padrão de horários (Sábado vs Semana)
-        if dia_semana_selecionado == 5:
-            for i in range(15):
-                hora_gerada = (inicio_expediente + timedelta(minutes=40 * i)).time()
-                if hora_gerada <= dt_time(17, 0):
-                    horarios_todos.append(hora_gerada)
-        else:
-            for i in range(17):
-                hora_gerada = (inicio_expediente + timedelta(minutes=40 * i)).time()
-                if hora_gerada <= dt_time(18, 0):
-                    horarios_todos.append(hora_gerada)
+        # Define o fim do expediente em minutos absolutos (Sábado até 17h, Semana até 18h)
+        minutos_fim = 1020 if dia_semana_selecionado == 5 else 1080  # 1020 = 17h00 | 1080 = 18h00
+        
+        minutos_atual = minutos_inicio
+        while minutos_atual <= minutos_fim:
+            h_print = minutos_atual // 60
+            m_print = minutos_atual % 60
+            horarios_todos.append(dt_time(h_print, m_print))
+            minutos_atual += 40
         
         # --- FILTRO DE HORÁRIOS OCUPADOS E HORÁRIOS PASSADOS ---
         horarios_disponiveis = []
         for h in horarios_todos:
             dt_verificar = datetime.combine(data_atendimento, h)
             
-            # Só bloqueia horários se a data escolhida for exatamente HOJE
+            # Só filtra horários que já passaram se o dia selecionado for HOJE
             if data_atendimento == hoje_dt.date():
                 if h < hoje_dt.time():
                     continue
