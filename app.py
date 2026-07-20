@@ -41,23 +41,21 @@ def salvar_agendamentos(dados):
     with open(ARQUIVO_BANCO, "w", encoding="utf-8") as f:
         json.dump(dados_para_salvar, f, ensure_ascii=False, indent=4)
 
-# RESET TOTAL DE CORES - FORÇANDO PRETO E BRANCO DE ALTO CONTRASTE INDEPENDENTE DO TEMA DO STREAMLIT
+# CSS DINÂMICO - ADAPTA AUTOMATICAMENTE ENTRE LIGHT E DARK MODE
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     
-    /* Força fundo branco em absolutamente tudo */
-    html, body, [data-testid="stAppViewContainer"], [data-testid="stHeader"], [data-testid="stMainBlockContainer"] {
+    html, body, [data-testid="stAppViewContainer"] {
         font-family: 'Inter', sans-serif !important;
-        background-color: #ffffff !important;
     }
     
-    /* Títulos e Textos Gerais em Preto Puro */
+    /* Títulos dinâmicos com base no tema do sistema */
     .main-title {
         text-align: center;
         font-size: 2.2rem;
         font-weight: 700;
-        color: #111111 !important;
+        color: var(--text-color) !important;
         letter-spacing: -0.5px;
         margin-bottom: 2px;
         padding-top: 10px;
@@ -65,84 +63,66 @@ st.markdown("""
     .main-subtitle {
         text-align: center;
         font-size: 1rem;
-        color: #444444 !important;
+        color: var(--text-color) !important;
+        opacity: 0.8;
         margin-bottom: 25px;
         font-weight: 500;
     }
     
-    /* Forçar cabeçalhos, labels e parágrafos do markdown para preto */
-    h1, h2, h3, h4, p, label, [data-testid="stWidgetLabel"] p, span {
-        color: #111111 !important;
-        font-weight: 600 !important;
-    }
-    
-    /* Caixa do formulário com bordas pretas nítidas */
+    /* Container do Formulário acompanhando o fundo do tema */
     .form-container {
-        background-color: #ffffff !important;
-        border: 2px solid #111111 !important;
+        background-color: var(--secondary-background-color) !important;
+        border: 1px solid rgba(128, 128, 128, 0.2) !important;
         padding: 25px;
         border-radius: 12px;
         margin-top: 15px;
     }
     
-    /* Ajustando o visual das abas (Tabs) para texto preto legível */
+    /* CORREÇÃO DAS ABAS (TABS) PARA EVITAR BLOCOS PRETOS INVISÍVEIS */
     .stTabs [data-baseweb="tab-list"] {
         gap: 6px;
-        background-color: #eeeeee !important;
+        background-color: var(--secondary-background-color) !important;
         padding: 6px;
         border-radius: 10px;
         border-bottom: none !important;
     }
     .stTabs [data-baseweb="tab"] {
-        color: #111111 !important;
+        color: var(--text-color) !important;
+        opacity: 0.7;
         background-color: transparent !important;
         border-radius: 6px;
         padding: 8px 14px;
         font-weight: 700 !important;
     }
+    /* Aba ativa herda o contraste correto do tema atual */
     .stTabs [aria-selected="true"] {
-        color: #ffffff !important;
-        background-color: #111111 !important;
+        opacity: 1 !important;
+        background-color: var(--background-color) !important;
+        box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1) !important;
+        border-radius: 6px !important;
     }
     
-    /* Inputs, Selectboxes e Radio Buttons com fundo branco e borda preta */
-    div[data-testid="stTextInput"] input, div[data-testid="stSelectbox"] div, div[data-testid="stNumberInput"] input {
-        color: #111111 !important;
-        background-color: #ffffff !important;
-        border: 2px solid #111111 !important;
-        border-radius: 8px !important;
+    /* Inputs de texto e seletores */
+    div[data-testid="stTextInput"] input, div[data-testid="stSelectbox"] div {
+        color: var(--text-color) !important;
+        background-color: var(--background-color) !important;
     }
     
-    /* Texto interno selecionado dentro das caixas de opções */
-    div[data-baseweb="select"] * {
-        color: #111111 !important;
-    }
-    
-    /* Radio Buttons (Opção do Barbeiro) */
-    div[data-testid="stRadio"] div {
-        color: #111111 !important;
-    }
-    
-    /* Botão Principal de Confirmação em Preto Puro com Texto Branco */
+    /* Botão Principal de Confirmação (Estilo Invertido/Contraste) */
     button[data-testid="baseButton-primary"] {
-        background-color: #111111 !important;
-        color: #ffffff !important;
+        background-color: var(--text-color) !important;
+        color: var(--background-color) !important;
         font-weight: 700 !important;
-        border: 2px solid #111111 !important;
+        border: none !important;
         border-radius: 8px !important;
         height: 50px !important;
         font-size: 16px !important;
-        cursor: pointer !important;
-    }
-    button[data-testid="baseButton-primary"]:hover {
-        background-color: #333333 !important;
-        border-color: #333333 !important;
     }
     
-    /* Cards de agendamento na listagem */
+    /* Cards da Listagem de Clientes */
     .client-card {
-        background-color: #ffffff !important;
-        border: 2px solid #111111 !important;
+        background-color: var(--secondary-background-color) !important;
+        border: 1px solid rgba(128, 128, 128, 0.2) !important;
         padding: 16px;
         border-radius: 10px;
         margin-bottom: 10px;
@@ -150,21 +130,21 @@ st.markdown("""
         justify-content: space-between;
         align-items: center;
     }
+    
     .whatsapp-btn {
-        background-color: #25D366 !important;
+        background-color: #23a55a !important;
         color: #ffffff !important;
         padding: 8px 16px;
         border-radius: 6px;
         font-weight: 700;
         text-decoration: none;
         font-size: 14px;
-        border: 1px solid #1ea952;
     }
     
     /* Cards do Painel Admin */
     .metric-card {
-        background-color: #ffffff !important;
-        border: 2px solid #111111 !important;
+        background-color: var(--secondary-background-color) !important;
+        border: 1px solid rgba(128, 128, 128, 0.2) !important;
         padding: 18px;
         border-radius: 10px;
         text-align: center;
@@ -272,7 +252,7 @@ with aba2:
         
         def renderizar_lista(lista_filtrada):
             if not lista_filtrada:
-                st.markdown("<p style='color:#111111;'>Sem horários marcados.</p>", unsafe_allow_html=True)
+                st.write("Sem horários marcados.")
                 return
             for ag in lista_filtrada:
                 data_str = ag["data_hora"].strftime("%d/%m/%Y")
@@ -282,9 +262,9 @@ with aba2:
                 card_html = f"""
                 <div class="client-card">
                     <div>
-                        <span style="font-size: 16px; font-weight: 700; color: #111111;">{ag['cliente']}</span>
-                        <span style="font-size: 14px; color: #333333;"> • {ag['servico']}</span>
-                        <div style="font-size: 13px; color: #444444; margin-top: 4px;">
+                        <span style="font-size: 16px; font-weight: 700; color: var(--text-color);">{ag['cliente']}</span>
+                        <span style="font-size: 14px; color: var(--text-color); opacity: 0.8;"> • {ag['servico']}</span>
+                        <div style="font-size: 13px; color: var(--text-color); opacity: 0.7; margin-top: 4px;">
                             📅 {data_str} às <b>{hora_str}</b> | Barbeiro: {ag['profissional']}
                         </div>
                     </div>
@@ -322,12 +302,12 @@ with aba3:
                 with col_info:
                     st.markdown(f"""
                     <div style="padding: 5px 0;">
-                        <span style="font-size: 15px; font-weight: 700; color: #b91c1c;">{ag['cliente']}</span><br>
-                        <span style="font-size: 13px; color: #111111;">📅 {data_str} às {hora_str} | {ag['servico']}</span>
+                        <span style="font-size: 16px; font-weight: 700; color: #ff4b4b;">{ag['cliente']}</span><br>
+                        <span style="font-size: 13px; color: var(--text-color);">📅 {data_str} às {hora_str} | {ag['servico']}</span>
                     </div>
                     """, unsafe_allow_html=True)
                 with col_btn:
-                    if st.button("🗑️ Cancelar", key=f"del_{sufixo}_{indice_real}", use_container_width=True, type="primary"):
+                    if st.button("🗑️ Cancelar", key=f"del_{sufixo}_{indice_real}", use_container_width=True, type="secondary"):
                         lista_agendamentos.pop(indice_real)
                         salvar_agendamentos(lista_agendamentos)
                         st.success("Cancelado!")
@@ -363,6 +343,6 @@ with aba4:
                 
                 col_m1, col_m2 = st.columns(2)
                 with col_m1:
-                    st.markdown(f'<div class="metric-card"><span style="color:#111111;font-size:14px;font-weight:700;">Faturamento</span><br><span style="font-size:24px;font-weight:700;color:#16a34a;">R$ {faturamento:,.2f}</span></div>', unsafe_allow_html=True)
+                    st.markdown(f'<div class="metric-card"><span style="color:var(--text-color);font-size:14px;font-weight:700;">Faturamento</span><br><span style="font-size:24px;font-weight:700;color:#23a55a;">R$ {faturamento:,.2f}</span></div>', unsafe_allow_html=True)
                 with col_m2:
-                    st.markdown(f'<div class="metric-card"><span style="color:#111111;font-size:14px;font-weight:700;">Atendimentos</span><br><span style="font-size:24px;font-weight:700;color:#111111;">{total}</span></div>', unsafe_allow_html=True)
+                    st.markdown(f'<div class="metric-card"><span style="color:var(--text-color);font-size:14px;font-weight:700;">Atendimentos</span><br><span style="font-size:24px;font-weight:700;color:var(--text-color);">{total}</span></div>', unsafe_allow_html=True)
