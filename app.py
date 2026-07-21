@@ -232,11 +232,10 @@ with aba1:
                 conflito = any(ag["profissional"] == profissional and ag["data_hora"] == dt_completo for ag in lista_agendamentos)
                 
                 if not conflito:
-                    # Limpa caracteres e ajusta o código do país/DDD automaticamente
                     tel_limpo = "".join(filter(str.isdigit, telefone))
-                    if len(tel_limpo) == 9:  # Se digitou apenas o número com 9 dígitos
+                    if len(tel_limpo) == 9:
                         tel_limpo = "5531" + tel_limpo
-                    elif len(tel_limpo) == 11:  # Se digitou DDD + número
+                    elif len(tel_limpo) == 11:
                         tel_limpo = "55" + tel_limpo
                     elif not tel_limpo.startswith("55") and len(tel_limpo) >= 10:
                         tel_limpo = "55" + tel_limpo
@@ -250,13 +249,36 @@ with aba1:
                     })
                     lista_agendamentos.sort(key=lambda x: x["data_hora"])
                     salvar_agendamentos(lista_agendamentos)
-                    st.success(f"🎉 Horário reservado para {cliente}!")
-                    time.sleep(1)
-                    st.rerun()
+                    
+                    data_f = data_atendimento.strftime('%d/%m/%Y')
+                    hora_f = hora_atendimento.strftime('%H:%M')
+                    
+                    texto_msg = (
+                        f"Olá! Confirmo meu agendamento na Barbearia Preto & Branco:\n\n"
+                        f"👤 *Cliente:* {cliente}\n"
+                        f"💈 *Serviço:* {servico}\n"
+                        f"🧔 *Barbeiro:* {profissional}\n"
+                        f"📅 *Data:* {data_f} às {hora_f}\n\n"
+                        f"📍 *Endereço:* {ENDERECO_BARBEARIA}"
+                    )
+                    
+                    num_barbeiro = CONTATO_BRUNO if profissional == "Bruno" else CONTATO_SAMUEL
+                    link_wa = f"https://wa.me/{num_barbeiro}?text={urllib.parse.quote(texto_msg)}"
+                    
+                    st.success(f"🎉 Horário reservado com sucesso para {cliente}!")
+                    
+                    st.markdown(f"""
+                    <div style="background-color: var(--secondary-background-color); border: 2px solid #23a55a; padding: 20px; border-radius: 10px; text-align: center; margin-top: 15px; margin-bottom: 20px;">
+                        <h4 style="margin: 0 0 8px 0; color: var(--text-color);">Quase lá! Envie a confirmação:</h4>
+                        <p style="font-size: 14px; opacity: 0.8; margin-bottom: 15px;">Clique no botão abaixo para notificar o barbeiro via WhatsApp.</p>
+                        <a href="{link_wa}" target="_blank" style="background-color: #23a55a; color: white; padding: 12px 24px; font-weight: bold; font-size: 16px; border-radius: 8px; text-decoration: none; display: inline-block;">
+                            📲 Enviar confirmação no WhatsApp
+                        </a>
+                    </div>
+                    """, unsafe_allow_html=True)
                 else:
                     st.error("Conflito de última hora detectado.")
 
-       # Rodapé com informações fixas, números visíveis e links para o WhatsApp
         formato_bruno = f"https://wa.me/{CONTATO_BRUNO}"
         formato_samuel = f"https://wa.me/{CONTATO_SAMUEL}"
         
@@ -269,32 +291,30 @@ with aba1:
         </div>
         """, unsafe_allow_html=True)
 
-# --- ABA 2: VISUALIZAR AGENDA ---
+# --- ABA 2: VISUALIZAR AGENDA & CONSULTAR HORÁRIOS LIVRES ---
 with aba2:
     st.subheader("Consultar Agenda e Horários Livres")
     
     lista_agendamentos = carregar_agendamentos()
     
-    # Seleção da data para consulta
     hoje_dt = datetime.utcnow() - timedelta(hours=3)
     dias_semana_pt = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"]
     
     opcoes_datas_consulta = []
     for i in range(30):
         futuro = hoje_dt + timedelta(days=i)
-        if futuro.weekday() != 6: # Ignora domingo
+        if futuro.weekday() != 6:
             texto_data = f"{futuro.strftime('%d/%m/%Y')} ({dias_semana_pt[futuro.weekday()]})"
             opcoes_datas_consulta.append((futuro.date(), texto_data))
             
     data_consulta_sel = st.selectbox("Selecione a data para consultar:", opcoes_datas_consulta, format_func=lambda x: x[1], key="select_data_consulta")
     data_consulta = data_consulta_sel[0]
     
-    # Função para calcular horários livres de um profissional específico na data escolhida
-    def obter_horarios_vagose(profissional, data_alvo):
+    def obter_horarios_vagos(profissional, data_alvo):
         dia_semana = data_alvo.weekday()
         horarios_todos = []
-        minutos_inicio = 480  # 08:00
-        minutos_fim = 1020 if dia_semana == 5 else 1080  # 17:00 no sábado / 18:00 semana
+        minutos_inicio = 480
+        minutos_fim = 1020 if dia_semana == 5 else 1080
         
         minutos_atual = minutos_inicio
         while minutos_atual <= minutos_fim:
@@ -306,7 +326,6 @@ with aba2:
         horarios_vagos = []
         for h in horarios_todos:
             dt_verificar = datetime.combine(data_alvo, h)
-            # Se for hoje e já passou da hora, ignora
             if data_alvo == hoje_dt.date() and h < hoje_dt.time():
                 continue
             ocupado = any(ag["profissional"] == profissional and ag["data_hora"] == dt_verificar for ag in lista_agendamentos)
@@ -345,12 +364,10 @@ with aba2:
             """
             st.markdown(card_html, unsafe_allow_html=True)
 
-    # --- VISÃO BRUNO ---
     with sub_bruno:
         ag_bruno_data = [ag for ag in lista_agendamentos if ag["profissional"] == "Bruno" and ag["data_hora"].date() == data_consulta]
-        vagos_bruno = obter_horarios_vagose("Bruno", data_consulta)
+        vagos_bruno = obter_horarios_vagos("Bruno", data_consulta)
         
-        # Expander com os horários vagos
         with st.expander(f"🟢 Ver {len(vagos_bruno)} horários vagos do Bruno para {data_consulta.strftime('%d/%m/%Y')}", expanded=False):
             if vagos_bruno:
                 cols = st.columns(4)
@@ -362,12 +379,10 @@ with aba2:
         st.markdown("#### Clientes Marcados")
         renderizar_lista(ag_bruno_data)
 
-    # --- VISÃO SAMUEL ---
     with sub_samuel:
         ag_samuel_data = [ag for ag in lista_agendamentos if ag["profissional"] == "Samuel" and ag["data_hora"].date() == data_consulta]
-        vagos_samuel = obter_horarios_vagose("Samuel", data_consulta)
+        vagos_samuel = obter_horarios_vagos("Samuel", data_consulta)
         
-        # Expander com os horários vagos
         with st.expander(f"🟢 Ver {len(vagos_samuel)} horários vagos do Samuel para {data_consulta.strftime('%d/%m/%Y')}", expanded=False):
             if vagos_samuel:
                 cols = st.columns(4)
@@ -379,11 +394,11 @@ with aba2:
         st.markdown("#### Clientes Marcados")
         renderizar_lista(ag_samuel_data)
 
-    # --- VISÃO GERAL ---
     with sub_geral:
         ag_geral_data = [ag for ag in lista_agendamentos if ag["data_hora"].date() == data_consulta]
         st.markdown("#### Todos os Clientes Marcados do Dia")
         renderizar_lista(ag_geral_data)
+
 # --- ABA 3: CANCELAR HORÁRIO ---
 with aba3:
     lista_agendamentos = carregar_agendamentos()
