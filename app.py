@@ -17,7 +17,7 @@ PRECOS_SERVICOS = {
     "Sobrancelha": 10.0
 }
 
-# CONTATOS REAIS DA BARBEARIA (Formatados para link internacional do WhatsApp)
+# CONTATOS REAIS DA BARBEARIA
 CONTATO_BRUNO = "5531985271355"  
 CONTATO_SAMUEL = "5531985271355" 
 ENDERECO_BARBEARIA = "R. dos Toureiros, 62 - Juliana"
@@ -47,76 +47,112 @@ def salvar_agendamentos(dados):
     with open(ARQUIVO_BANCO, "w", encoding="utf-8") as f:
         json.dump(dados_para_salvar, f, ensure_ascii=False, indent=4)
 
-# CSS DINÂMICO - ADAPTA AUTOMATICAMENTE ENTRE LIGHT E DARK MODE
+# --- CSS CUSTOMIZADO PREMIUM PRETO & BRANCO ---
 st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap');
     
     html, body, [data-testid="stAppViewContainer"] {
         font-family: 'Inter', sans-serif !important;
     }
     
-    .main-title {
+    /* Header da Barbearia */
+    .header-box {
         text-align: center;
+        padding: 20px 10px;
+        background: linear-gradient(180deg, #18181b 0%, #09090b 100%);
+        border-radius: 12px;
+        border: 1px solid #27272a;
+        margin-bottom: 25px;
+        box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.15);
+    }
+    .header-box .badge-barber {
+        font-size: 28px;
+        margin-bottom: 5px;
+    }
+    .main-title {
+        font-family: 'Montserrat', sans-serif !important;
         font-size: 2.2rem;
-        font-weight: 700;
-        color: var(--text-color) !important;
-        letter-spacing: -0.5px;
-        margin-bottom: 2px;
-        padding-top: 10px;
+        font-weight: 800;
+        color: #ffffff !important;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        margin: 0;
     }
     .main-subtitle {
-        text-align: center;
-        font-size: 1rem;
-        color: var(--text-color) !important;
-        opacity: 0.8;
-        margin-bottom: 25px;
+        font-size: 0.9rem;
+        color: #a1a1aa !important;
+        margin-top: 5px;
         font-weight: 500;
+        letter-spacing: 0.5px;
     }
     
+    /* Estilização das Abas */
     .stTabs [data-baseweb="tab-list"] {
-        gap: 6px;
-        background-color: var(--secondary-background-color) !important;
+        gap: 8px;
+        background-color: #f4f4f5 !important;
         padding: 6px;
-        border-radius: 10px;
+        border-radius: 12px;
         border-bottom: none !important;
     }
     .stTabs [data-baseweb="tab"] {
-        color: var(--text-color) !important;
-        opacity: 0.7;
+        color: #52525b !important;
         background-color: transparent !important;
-        border-radius: 6px;
-        padding: 8px 14px;
-        font-weight: 700 !important;
+        border-radius: 8px;
+        padding: 10px 16px;
+        font-weight: 600 !important;
+        font-size: 14px !important;
+        border: none !important;
     }
     .stTabs [aria-selected="true"] {
-        opacity: 1 !important;
-        background-color: var(--background-color) !important;
-        box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1) !important;
-        border-radius: 6px !important;
+        color: #ffffff !important;
+        background-color: #18181b !important;
+        box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.15) !important;
     }
     
-    div[data-testid="stTextInput"] input, div[data-testid="stSelectbox"] div {
-        color: var(--text-color) !important;
-        background-color: var(--background-color) !important;
-    }
-    
+    /* Botão Principal Estilo Barbershop */
     button[data-testid="baseButton-primary"] {
-        background-color: var(--text-color) !important;
-        color: var(--background-color) !important;
+        background: #18181b !important;
+        color: #ffffff !important;
+        font-family: 'Montserrat', sans-serif !important;
         font-weight: 700 !important;
-        border: none !important;
-        border-radius: 8px !important;
-        height: 50px !important;
-        font-size: 16px !important;
+        text-transform: uppercase !important;
+        letter-spacing: 1px !important;
+        border: 1px solid #27272a !important;
+        border-radius: 10px !important;
+        height: 52px !important;
+        font-size: 15px !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    button[data-testid="baseButton-primary"]:hover {
+        background: #27272a !important;
+        border-color: #3f3f46 !important;
+        transform: translateY(-1px);
     }
     
+    /* Customização dos Radio Buttons (Seleção do Profissional) */
+    div[data-testid="stRadio"] > label {
+        font-weight: 600 !important;
+        font-size: 14px !important;
+    }
+    
+    /* Form Cards */
+    .form-container {
+        background-color: #ffffff;
+        border: 1px solid #e4e4e7;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.03);
+    }
+    
+    /* Card de Clientes Marcados */
     .client-card {
-        background-color: var(--secondary-background-color) !important;
-        border: 1px solid rgba(128, 128, 128, 0.2) !important;
+        background-color: #fafafa !important;
+        border: 1px solid #e4e4e7 !important;
         padding: 16px;
         border-radius: 10px;
-        margin-bottom: 10px;
+        margin-bottom: 12px;
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -126,170 +162,185 @@ st.markdown("""
         background-color: #23a55a !important;
         color: #ffffff !important;
         padding: 8px 16px;
-        border-radius: 6px;
+        border-radius: 8px;
         font-weight: 700;
         text-decoration: none;
-        font-size: 14px;
+        font-size: 13px;
+        display: inline-block;
+        transition: background 0.2s ease;
+    }
+    .whatsapp-btn:hover {
+        background-color: #1d8a4b !important;
     }
     
     .metric-card {
-        background-color: var(--secondary-background-color) !important;
-        border: 1px solid rgba(128, 128, 128, 0.2) !important;
-        padding: 18px;
-        border-radius: 10px;
+        background-color: #fafafa !important;
+        border: 1px solid #e4e4e7 !important;
+        padding: 20px;
+        border-radius: 12px;
         text-align: center;
     }
     
+    /* Footer */
     .info-footer {
-        background-color: var(--secondary-background-color);
-        border: 1px solid rgba(128, 128, 128, 0.2);
-        padding: 15px;
-        border-radius: 10px;
+        background-color: #18181b;
+        color: #a1a1aa;
+        border: 1px solid #27272a;
+        padding: 18px;
+        border-radius: 12px;
         margin-top: 30px;
         font-size: 14px;
+        line-height: 1.6;
+    }
+    .info-footer b {
+        color: #ffffff;
     }
     </style>
 """, unsafe_allow_html=True)
 
-# Cabeçalho
-st.markdown('<div class="main-title">💈 BARBEARIA PRETO & BRANCO</div>', unsafe_allow_html=True)
-st.markdown('<div class="main-subtitle">Agendamento Online & Gestão Integrada</div>', unsafe_allow_html=True)
+# Cabeçalho Estilizado Preto & Branco
+st.markdown("""
+    <div class="header-box">
+        <div class="badge-barber">💈</div>
+        <div class="main-title">Barbearia Preto & Branco</div>
+        <div class="main-subtitle">Agendamento Online & Gestão Integrada</div>
+    </div>
+""", unsafe_allow_html=True)
 
 aba1, aba2, aba3, aba4 = st.tabs(["📅 Novo Agendamento", "📋 Horários Marcados", "❌ Cancelar Horário", "📊 Painel Administrativo"])
 
 # --- ABA 1: NOVO AGENDAMENTO ---
 with aba1:
-    with st.container():
-        st.subheader("Preencha os dados abaixo")
-        
-        lista_agendamentos = carregar_agendamentos()
-        
-        col_c1, col_c2 = st.columns([2, 1])
-        with col_c1:
-            cliente = st.text_input("Nome completo do cliente:", key="input_cliente", placeholder="Ex: João Silva").strip()
-        with col_c2:
-            telefone = st.text_input("WhatsApp / Celular:", key="input_telefone", placeholder="Ex: 31985271355").strip()
-        
-        col_form1, col_form2 = st.columns(2)
-        with col_form1:
-            servico = st.selectbox("Escolha o Serviço:", list(PRECOS_SERVICOS.keys()), key="select_servico")
-        with col_form2:
-            profissional = st.radio("Selecione o Profissional:", ["Bruno", "Samuel"], horizontal=True, key="radio_prof")
-        
-        hoje_dt = datetime.utcnow() - timedelta(hours=3)
-        dias_semana_pt = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"]
-        
-        opcoes_datas = []
-        for i in range(30):
-            futuro = hoje_dt + timedelta(days=i)
-            if futuro.weekday() != 6:
-                texto_data = f"{futuro.strftime('%d/%m/%Y')} ({dias_semana_pt[futuro.weekday()]})"
-                opcoes_datas.append((futuro.date(), texto_data))
-        
-        col_data, col_hora = st.columns(2)
-        with col_data:
-            data_selecionada = st.selectbox("Escolha a Data:", opcoes_datas, format_func=lambda x: x[1], key="select_data")
-            data_atendimento = data_selecionada[0]
-        
-        dia_semana_selecionado = data_atendimento.weekday()
-        horarios_todos = []
-        minutos_inicio = 480
-        minutos_fim = 1020 if dia_semana_selecionado == 5 else 1080
-        
-        minutos_atual = minutos_inicio
-        while minutos_atual <= minutos_fim:
-            h_print = minutos_atual // 60
-            m_print = minutos_atual % 60
-            horarios_todos.append(dt_time(h_print, m_print))
-            minutos_atual += 40
-        
-        horarios_disponiveis = []
-        for h in horarios_todos:
-            dt_verificar = datetime.combine(data_atendimento, h)
-            if data_atendimento == hoje_dt.date() and h < hoje_dt.time():
-                continue
-            ocupado = any(ag["profissional"] == profissional and ag["data_hora"] == dt_verificar for ag in lista_agendamentos)
-            if not ocupado:
-                horarios_disponiveis.append(h)
-        
-        with col_hora:
-            if horarios_disponiveis:
-                hora_atendimento = st.selectbox("Horários Livres:", horarios_disponiveis, format_func=lambda x: x.strftime("%H:%M"), key="select_hora")
-                st.write("") 
-                botao_agendar = st.button("Confirmar Agendamento", use_container_width=True, type="primary")
-            else:
-                st.error("⚠️ Sem horários livres!")
-                botao_agendar = False
+    st.subheader("Selecione os detalhes da sua reserva")
+    
+    lista_agendamentos = carregar_agendamentos()
+    
+    col_c1, col_c2 = st.columns([2, 1])
+    with col_c1:
+        cliente = st.text_input("Nome completo do cliente:", key="input_cliente", placeholder="Ex: João Silva").strip()
+    with col_c2:
+        telefone = st.text_input("WhatsApp / Celular:", key="input_telefone", placeholder="Ex: 31985271355").strip()
+    
+    col_form1, col_form2 = st.columns(2)
+    with col_form1:
+        servico = st.selectbox("Escolha o Serviço:", list(PRECOS_SERVICOS.keys()), key="select_servico")
+    with col_form2:
+        profissional = st.radio("Selecione o Profissional:", ["Bruno", "Samuel"], horizontal=True, key="radio_prof")
+    
+    hoje_dt = datetime.utcnow() - timedelta(hours=3)
+    dias_semana_pt = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"]
+    
+    opcoes_datas = []
+    for i in range(30):
+        futuro = hoje_dt + timedelta(days=i)
+        if futuro.weekday() != 6:
+            texto_data = f"{futuro.strftime('%d/%m/%Y')} ({dias_semana_pt[futuro.weekday()]})"
+            opcoes_datas.append((futuro.date(), texto_data))
+    
+    col_data, col_hora = st.columns(2)
+    with col_data:
+        data_selecionada = st.selectbox("Escolha a Data:", opcoes_datas, format_func=lambda x: x[1], key="select_data")
+        data_atendimento = data_selecionada[0]
+    
+    dia_semana_selecionado = data_atendimento.weekday()
+    horarios_todos = []
+    minutos_inicio = 480
+    minutos_fim = 1020 if dia_semana_selecionado == 5 else 1080
+    
+    minutos_atual = minutos_inicio
+    while minutos_atual <= minutos_fim:
+        h_print = minutos_atual // 60
+        m_print = minutos_atual % 60
+        horarios_todos.append(dt_time(h_print, m_print))
+        minutos_atual += 40
+    
+    horarios_disponiveis = []
+    for h in horarios_todos:
+        dt_verificar = datetime.combine(data_atendimento, h)
+        if data_atendimento == hoje_dt.date() and h < hoje_dt.time():
+            continue
+        ocupado = any(ag["profissional"] == profissional and ag["data_hora"] == dt_verificar for ag in lista_agendamentos)
+        if not ocupado:
+            horarios_disponiveis.append(h)
+    
+    with col_hora:
+        if horarios_disponiveis:
+            hora_atendimento = st.selectbox("Horários Livres:", horarios_disponiveis, format_func=lambda x: x.strftime("%H:%M"), key="select_hora")
+            st.write("") 
+            botao_agendar = st.button("Confirmar Agendamento", use_container_width=True, type="primary")
+        else:
+            st.error("⚠️ Sem horários livres!")
+            botao_agendar = False
 
-        if botao_agendar:
-            if not cliente:
-                st.error("Por favor, informe o nome.")
-            elif not telefone:
-                st.error("Por favor, informe o telefone de contato.")
-            else:
-                dt_completo = datetime.combine(data_atendimento, hora_atendimento)
-                lista_agendamentos = carregar_agendamentos()
-                conflito = any(ag["profissional"] == profissional and ag["data_hora"] == dt_completo for ag in lista_agendamentos)
+    if botao_agendar:
+        if not cliente:
+            st.error("Por favor, informe o nome.")
+        elif not telefone:
+            st.error("Por favor, informe o telefone de contato.")
+        else:
+            dt_completo = datetime.combine(data_atendimento, hora_atendimento)
+            lista_agendamentos = carregar_agendamentos()
+            conflito = any(ag["profissional"] == profissional and ag["data_hora"] == dt_completo for ag in lista_agendamentos)
+            
+            if not conflito:
+                tel_limpo = "".join(filter(str.isdigit, telefone))
+                if len(tel_limpo) == 9:
+                    tel_limpo = "5531" + tel_limpo
+                elif len(tel_limpo) == 11:
+                    tel_limpo = "55" + tel_limpo
+                elif not tel_limpo.startswith("55") and len(tel_limpo) >= 10:
+                    tel_limpo = "55" + tel_limpo
+
+                lista_agendamentos.append({
+                    "cliente": cliente,
+                    "telefone": tel_limpo,
+                    "servico": servico,
+                    "profissional": profissional,
+                    "data_hora": dt_completo
+                })
+                lista_agendamentos.sort(key=lambda x: x["data_hora"])
+                salvar_agendamentos(lista_agendamentos)
                 
-                if not conflito:
-                    tel_limpo = "".join(filter(str.isdigit, telefone))
-                    if len(tel_limpo) == 9:
-                        tel_limpo = "5531" + tel_limpo
-                    elif len(tel_limpo) == 11:
-                        tel_limpo = "55" + tel_limpo
-                    elif not tel_limpo.startswith("55") and len(tel_limpo) >= 10:
-                        tel_limpo = "55" + tel_limpo
+                data_f = data_atendimento.strftime('%d/%m/%Y')
+                hora_f = hora_atendimento.strftime('%H:%M')
+                
+                texto_msg = (
+                    f"Olá! Confirmo meu agendamento na Barbearia Preto & Branco:\n\n"
+                    f"👤 *Cliente:* {cliente}\n"
+                    f"💈 *Serviço:* {servico}\n"
+                    f"🧔 *Barbeiro:* {profissional}\n"
+                    f"📅 *Data:* {data_f} às {hora_f}\n\n"
+                    f"📍 *Endereço:* {ENDERECO_BARBEARIA}"
+                )
+                
+                num_barbeiro = CONTATO_BRUNO if profissional == "Bruno" else CONTATO_SAMUEL
+                link_wa = f"https://wa.me/{num_barbeiro}?text={urllib.parse.quote(texto_msg)}"
+                
+                st.success(f"🎉 Horário reservado com sucesso para {cliente}!")
+                
+                st.markdown(f"""
+                <div style="background-color: #fafafa; border: 2px solid #23a55a; padding: 20px; border-radius: 12px; text-align: center; margin-top: 15px; margin-bottom: 20px;">
+                    <h4 style="margin: 0 0 8px 0; color: #18181b;">Quase lá! Envie a confirmação:</h4>
+                    <p style="font-size: 14px; color: #52525b; margin-bottom: 15px;">Clique no botão abaixo para notificar o barbeiro via WhatsApp.</p>
+                    <a href="{link_wa}" target="_blank" class="whatsapp-btn" style="font-size: 15px; padding: 12px 24px;">
+                        📲 Enviar confirmação no WhatsApp
+                    </a>
+                </div>
+                """, unsafe_allow_html=True)
+            else:
+                st.error("Conflito de última hora detectado.")
 
-                    lista_agendamentos.append({
-                        "cliente": cliente,
-                        "telefone": tel_limpo,
-                        "servico": servico,
-                        "profissional": profissional,
-                        "data_hora": dt_completo
-                    })
-                    lista_agendamentos.sort(key=lambda x: x["data_hora"])
-                    salvar_agendamentos(lista_agendamentos)
-                    
-                    data_f = data_atendimento.strftime('%d/%m/%Y')
-                    hora_f = hora_atendimento.strftime('%H:%M')
-                    
-                    texto_msg = (
-                        f"Olá! Confirmo meu agendamento na Barbearia Preto & Branco:\n\n"
-                        f"👤 *Cliente:* {cliente}\n"
-                        f"💈 *Serviço:* {servico}\n"
-                        f"🧔 *Barbeiro:* {profissional}\n"
-                        f"📅 *Data:* {data_f} às {hora_f}\n\n"
-                        f"📍 *Endereço:* {ENDERECO_BARBEARIA}"
-                    )
-                    
-                    num_barbeiro = CONTATO_BRUNO if profissional == "Bruno" else CONTATO_SAMUEL
-                    link_wa = f"https://wa.me/{num_barbeiro}?text={urllib.parse.quote(texto_msg)}"
-                    
-                    st.success(f"🎉 Horário reservado com sucesso para {cliente}!")
-                    
-                    st.markdown(f"""
-                    <div style="background-color: var(--secondary-background-color); border: 2px solid #23a55a; padding: 20px; border-radius: 10px; text-align: center; margin-top: 15px; margin-bottom: 20px;">
-                        <h4 style="margin: 0 0 8px 0; color: var(--text-color);">Quase lá! Envie a confirmação:</h4>
-                        <p style="font-size: 14px; opacity: 0.8; margin-bottom: 15px;">Clique no botão abaixo para notificar o barbeiro via WhatsApp.</p>
-                        <a href="{link_wa}" target="_blank" style="background-color: #23a55a; color: white; padding: 12px 24px; font-weight: bold; font-size: 16px; border-radius: 8px; text-decoration: none; display: inline-block;">
-                            📲 Enviar confirmação no WhatsApp
-                        </a>
-                    </div>
-                    """, unsafe_allow_html=True)
-                else:
-                    st.error("Conflito de última hora detectado.")
-
-        formato_bruno = f"https://wa.me/{CONTATO_BRUNO}"
-        formato_samuel = f"https://wa.me/{CONTATO_SAMUEL}"
-        
-        st.markdown(f"""
-        <div class="info-footer">
-            <b>📍 Endereço:</b> {ENDERECO_BARBEARIA}<br>
-            <b>📞 Contatos para Dúvidas:</b> 
-            Bruno: <a href="{formato_bruno}" target="_blank" style="color: #23a55a; text-decoration: none; font-weight: bold;">(31) 98527-1355</a> | 
-            Samuel: <a href="{formato_samuel}" target="_blank" style="color: #23a55a; text-decoration: none; font-weight: bold;">(31) 98527-1355</a>
-        </div>
-        """, unsafe_allow_html=True)
+    formato_bruno = f"https://wa.me/{CONTATO_BRUNO}"
+    formato_samuel = f"https://wa.me/{CONTATO_SAMUEL}"
+    
+    st.markdown(f"""
+    <div class="info-footer">
+        <b>📍 Endereço:</b> {ENDERECO_BARBEARIA}<br>
+        <b>📞 Contatos para Dúvidas:</b> 
+        Bruno: <a href="{formato_bruno}" target="_blank" style="color: #23a55a; text-decoration: none; font-weight: bold;">(31) 98527-1355</a> | 
+        Samuel: <a href="{formato_samuel}" target="_blank" style="color: #23a55a; text-decoration: none; font-weight: bold;">(31) 98527-1355</a>
+    </div>
+    """, unsafe_allow_html=True)
 
 # --- ABA 2: VISUALIZAR AGENDA & CONSULTAR HORÁRIOS LIVRES ---
 with aba2:
@@ -351,9 +402,9 @@ with aba2:
             card_html = f"""
             <div class="client-card">
                 <div>
-                    <span style="font-size: 16px; font-weight: 700; color: var(--text-color);">{ag['cliente']}</span>
-                    <span style="font-size: 14px; color: var(--text-color); opacity: 0.8;"> • {ag['servico']}</span>
-                    <div style="font-size: 13px; color: var(--text-color); opacity: 0.7; margin-top: 4px;">
+                    <span style="font-size: 16px; font-weight: 700; color: #18181b;">{ag['cliente']}</span>
+                    <span style="font-size: 14px; color: #71717a;"> • {ag['servico']}</span>
+                    <div style="font-size: 13px; color: #71717a; margin-top: 4px;">
                         📅 {data_str} às <b>{hora_str}</b> | Barbeiro: {ag['profissional']} {f'| 📱 {ag["telefone"]}' if ag.get("telefone") else ''}
                     </div>
                 </div>
@@ -422,8 +473,8 @@ with aba3:
                 with col_info:
                     st.markdown(f"""
                     <div style="padding: 5px 0;">
-                        <span style="font-size: 16px; font-weight: 700; color: #ff4b4b;">{ag['cliente']}</span><br>
-                        <span style="font-size: 13px; color: var(--text-color);">📅 {data_str} às {hora_str} | {ag['servico']}</span>
+                        <span style="font-size: 16px; font-weight: 700; color: #ef4444;">{ag['cliente']}</span><br>
+                        <span style="font-size: 13px; color: #52525b;">📅 {data_str} às {hora_str} | {ag['servico']}</span>
                     </div>
                     """, unsafe_allow_html=True)
                 with col_btn:
@@ -492,9 +543,9 @@ with aba4:
                 st.markdown("<h3 style='margin-top:20px;'>Resumo Geral</h3>", unsafe_allow_html=True)
                 col_m1, col_m2 = st.columns(2)
                 with col_m1:
-                    st.markdown(f'<div class="metric-card"><span style="color:var(--text-color);opacity:0.7;font-size:14px;font-weight:700;">Faturamento Total</span><br><span style="font-size:26px;font-weight:700;color:#23a55a;">R$ {faturamento_total:,.2f}</span></div>', unsafe_allow_html=True)
+                    st.markdown(f'<div class="metric-card"><span style="color:#71717a;font-size:14px;font-weight:700;">Faturamento Total</span><br><span style="font-size:26px;font-weight:800;color:#23a55a;">R$ {faturamento_total:,.2f}</span></div>', unsafe_allow_html=True)
                 with col_m2:
-                    st.markdown(f'<div class="metric-card"><span style="color:var(--text-color);opacity:0.7;font-size:14px;font-weight:700;">Total de Atendimentos</span><br><span style="font-size:26px;font-weight:700;color:var(--text-color);">{total_atendimentos}</span></div>', unsafe_allow_html=True)
+                    st.markdown(f'<div class="metric-card"><span style="color:#71717a;font-size:14px;font-weight:700;">Total de Atendimentos</span><br><span style="font-size:26px;font-weight:800;color:#18181b;">{total_atendimentos}</span></div>', unsafe_allow_html=True)
                 
                 st.markdown("<h3 style='margin-top:25px;'>Desempenho por Barbeiro</h3>", unsafe_allow_html=True)
                 col_b1, col_b2 = st.columns(2)
@@ -502,11 +553,11 @@ with aba4:
                 with col_b1:
                     st.markdown(f"""
                     <div class="metric-card" style="text-align: left; padding: 20px;">
-                        <span style="font-size: 18px; font-weight: 700; color: var(--text-color);">🧔 Bruno</span><br>
+                        <span style="font-size: 18px; font-weight: 700; color: #18181b;">🧔 Bruno</span><br>
                         <hr style="margin: 10px 0; opacity: 0.2;">
-                        <span style="font-size: 13px; color: var(--text-color); opacity: 0.7;">Faturamento:</span><br>
-                        <span style="font-size: 20px; font-weight: 700; color: var(--text-color);">R$ {fat_bruno:,.2f}</span><br><br>
-                        <span style="font-size: 13px; color: var(--text-color); opacity: 0.7;">Mais rendeu:</span><br>
+                        <span style="font-size: 13px; color: #71717a;">Faturamento:</span><br>
+                        <span style="font-size: 20px; font-weight: 700; color: #18181b;">R$ {fat_bruno:,.2f}</span><br><br>
+                        <span style="font-size: 13px; color: #71717a;">Mais rendeu:</span><br>
                         <span style="font-size: 15px; font-weight: 700; color: #23a55a;">{mais_rentavel_bruno}</span>
                     </div>
                     """, unsafe_allow_html=True)
@@ -514,11 +565,11 @@ with aba4:
                 with col_b2:
                     st.markdown(f"""
                     <div class="metric-card" style="text-align: left; padding: 20px;">
-                        <span style="font-size: 18px; font-weight: 700; color: var(--text-color);">👨 Samuel</span><br>
+                        <span style="font-size: 18px; font-weight: 700; color: #18181b;">👨 Samuel</span><br>
                         <hr style="margin: 10px 0; opacity: 0.2;">
-                        <span style="font-size: 13px; color: var(--text-color); opacity: 0.7;">Faturamento:</span><br>
-                        <span style="font-size: 20px; font-weight: 700; color: var(--text-color);">R$ {fat_samuel:,.2f}</span><br><br>
-                        <span style="font-size: 13px; color: var(--text-color); opacity: 0.7;">Mais rendeu:</span><br>
+                        <span style="font-size: 13px; color: #71717a;">Faturamento:</span><br>
+                        <span style="font-size: 20px; font-weight: 700; color: #18181b;">R$ {fat_samuel:,.2f}</span><br><br>
+                        <span style="font-size: 13px; color: #71717a;">Mais rendeu:</span><br>
                         <span style="font-size: 15px; font-weight: 700; color: #23a55a;">{mais_rentavel_samuel}</span>
                     </div>
                     """, unsafe_allow_html=True)
@@ -526,22 +577,22 @@ with aba4:
                 st.markdown("<h3 style='margin-top:25px;'>Quantidade de Serviços</h3>", unsafe_allow_html=True)
                 
                 linhas_html = ""
-                for servico, dados in contagem_servicos.items():
+                for servico_item, dados in contagem_servicos.items():
                     linhas_html += (
-                        f"<tr style='border-bottom: 1px solid rgba(128,128,128,0.2);'>"
-                        f"<td style='padding: 10px; font-weight: 600; color: var(--text-color);'>{servico}</td>"
-                        f"<td style='padding: 10px; text-align: center; color: var(--text-color);'>{dados['Bruno']}</td>"
-                        f"<td style='padding: 10px; text-align: center; color: var(--text-color);'>{dados['Samuel']}</td>"
-                        f"<td style='padding: 10px; text-align: center; font-weight: 700; color: #23a55a;'>{dados['Total']}</td>"
+                        f"<tr style='border-bottom: 1px solid #e4e4e7;'>"
+                        f"<td style='padding: 12px; font-weight: 600; color: #18181b;'>{servico_item}</td>"
+                        f"<td style='padding: 12px; text-align: center; color: #18181b;'>{dados['Bruno']}</td>"
+                        f"<td style='padding: 12px; text-align: center; color: #18181b;'>{dados['Samuel']}</td>"
+                        f"<td style='padding: 12px; text-align: center; font-weight: 700; color: #23a55a;'>{dados['Total']}</td>"
                         f"</tr>"
                     )
                 
                 tabela_html = (
-                    f"<div class='metric-card' style='padding: 15px; overflow-x: auto; text-align: left;'>""<table style='width: 100%; border-collapse: collapse;'>""<thead>""<tr style='border-bottom: 2px solid rgba(128,128,128,0.4);'>"
-                    f"<th style='padding: 10px; color: var(--text-color); text-align: left;'>Serviço</th>"
-                    f"<th style='padding: 10px; text-align: center; color: var(--text-color);'>Bruno</th>"
-                    f"<th style='padding: 10px; text-align: center; color: var(--text-color);'>Samuel</th>"
-                    f"<th style='padding: 10px; text-align: center; color: var(--text-color);'>Total Junto</th>"
+                    f"<div class='metric-card' style='padding: 15px; overflow-x: auto; text-align: left;'>""<table style='width: 100%; border-collapse: collapse;'>""<thead>""<tr style='border-bottom: 2px solid #18181b;'>"
+                    f"<th style='padding: 12px; color: #18181b; text-align: left;'>Serviço</th>"
+                    f"<th style='padding: 12px; text-align: center; color: #18181b;'>Bruno</th>"
+                    f"<th style='padding: 12px; text-align: center; color: #18181b;'>Samuel</th>"
+                    f"<th style='padding: 12px; text-align: center; color: #18181b;'>Total Junto</th>"
                     f"</tr>""</thead>""<tbody>"
                     f"{linhas_html}"
                     f"</tbody>""</table>""</div>"
