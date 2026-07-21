@@ -185,7 +185,7 @@ st.markdown("""
 # --- CABEÇALHO BARBEARIA PRETO & BRANCO ---
 st.markdown("""
     <div class="header-barber">
-        <div class="header-tag">• BARBERSHOP •</div>
+        <div class="header-tag">• BARBEARIA •</div>
         <h1 class="header-title">PRETO & BRANCO</h1>
         <div class="header-subtitle">Agendamento Online & Gestão Integrada</div>
     </div>
