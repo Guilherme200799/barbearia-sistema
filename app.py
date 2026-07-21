@@ -271,44 +271,119 @@ with aba1:
 
 # --- ABA 2: VISUALIZAR AGENDA ---
 with aba2:
+    st.subheader("Consultar Agenda e Horários Livres")
+    
     lista_agendamentos = carregar_agendamentos()
-    if not lista_agendamentos:
-        st.info("Nenhum cliente agendado.")
-    else:
-        sub_bruno, sub_samuel, sub_geral = st.tabs(["🧔 Agenda do Bruno", "👨 Agenda do Samuel", "📋 Ver Geral"])
+    
+    # Seleção da data para consulta
+    hoje_dt = datetime.utcnow() - timedelta(hours=3)
+    dias_semana_pt = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"]
+    
+    opcoes_datas_consulta = []
+    for i in range(30):
+        futuro = hoje_dt + timedelta(days=i)
+        if futuro.weekday() != 6: # Ignora domingo
+            texto_data = f"{futuro.strftime('%d/%m/%Y')} ({dias_semana_pt[futuro.weekday()]})"
+            opcoes_datas_consulta.append((futuro.date(), texto_data))
+            
+    data_consulta_sel = st.selectbox("Selecione a data para consultar:", opcoes_datas_consulta, format_func=lambda x: x[1], key="select_data_consulta")
+    data_consulta = data_consulta_sel[0]
+    
+    # Função para calcular horários livres de um profissional específico na data escolhida
+    def obter_horarios_vagose(profissional, data_alvo):
+        dia_semana = data_alvo.weekday()
+        horarios_todos = []
+        minutos_inicio = 480  # 08:00
+        minutos_fim = 1020 if dia_semana == 5 else 1080  # 17:00 no sábado / 18:00 semana
         
-        def renderizar_lista(lista_filtrada):
-            if not lista_filtrada:
-                st.write("Sem horários marcados.")
-                return
-            for ag in lista_filtrada:
-                data_str = ag["data_hora"].strftime("%d/%m/%Y")
-                hora_str = ag["data_hora"].strftime("%H:%M")
-                msg_encodada = urllib.parse.quote(f"Olá, {ag['cliente']}! Seu horário para {ag['servico']} está confirmado para o dia {data_str} às {hora_str} com o profissional {ag['profissional']}. 💈")
+        minutos_atual = minutos_inicio
+        while minutos_atual <= minutos_fim:
+            h_print = minutos_atual // 60
+            m_print = minutos_atual % 60
+            horarios_todos.append(dt_time(h_print, m_print))
+            minutos_atual += 40
+            
+        horarios_vagos = []
+        for h in horarios_todos:
+            dt_verificar = datetime.combine(data_alvo, h)
+            # Se for hoje e já passou da hora, ignora
+            if data_alvo == hoje_dt.date() and h < hoje_dt.time():
+                continue
+            ocupado = any(ag["profissional"] == profissional and ag["data_hora"] == dt_verificar for ag in lista_agendamentos)
+            if not ocupado:
+                horarios_vagos.append(h.strftime("%H:%M"))
                 
-                destino_whatsapp = ag.get("telefone", "")
-                link_whatsapp = f"https://wa.me/{destino_whatsapp}?text={msg_encodada}" if destino_whatsapp else f"https://wa.me/?text={msg_encodada}"
-                
-                card_html = f"""
-                <div class="client-card">
-                    <div>
-                        <span style="font-size: 16px; font-weight: 700; color: var(--text-color);">{ag['cliente']}</span>
-                        <span style="font-size: 14px; color: var(--text-color); opacity: 0.8;"> • {ag['servico']}</span>
-                        <div style="font-size: 13px; color: var(--text-color); opacity: 0.7; margin-top: 4px;">
-                            📅 {data_str} às <b>{hora_str}</b> | Barbeiro: {ag['profissional']} {f'| 📱 {ag["telefone"]}' if ag.get("telefone") else ''}
-                        </div>
-                    </div>
-                    <div>
-                        <a href="{link_whatsapp}" target="_blank" class="whatsapp-btn">Avisar</a>
+        return horarios_vagos
+
+    sub_bruno, sub_samuel, sub_geral = st.tabs(["🧔 Bruno", "👨 Samuel", "📋 Visão Geral"])
+    
+    def renderizar_lista(lista_filtrada):
+        if not lista_filtrada:
+            st.info("Nenhum cliente agendado para esta data.")
+            return
+        for ag in lista_filtrada:
+            data_str = ag["data_hora"].strftime("%d/%m/%Y")
+            hora_str = ag["data_hora"].strftime("%H:%M")
+            msg_encodada = urllib.parse.quote(f"Olá, {ag['cliente']}! Seu horário para {ag['servico']} está confirmado para o dia {data_str} às {hora_str} com o profissional {ag['profissional']}. 💈")
+            
+            destino_whatsapp = ag.get("telefone", "")
+            link_whatsapp = f"https://wa.me/{destino_whatsapp}?text={msg_encodada}" if destino_whatsapp else f"https://wa.me/?text={msg_encodada}"
+            
+            card_html = f"""
+            <div class="client-card">
+                <div>
+                    <span style="font-size: 16px; font-weight: 700; color: var(--text-color);">{ag['cliente']}</span>
+                    <span style="font-size: 14px; color: var(--text-color); opacity: 0.8;"> • {ag['servico']}</span>
+                    <div style="font-size: 13px; color: var(--text-color); opacity: 0.7; margin-top: 4px;">
+                        📅 {data_str} às <b>{hora_str}</b> | Barbeiro: {ag['profissional']} {f'| 📱 {ag["telefone"]}' if ag.get("telefone") else ''}
                     </div>
                 </div>
-                """
-                st.markdown(card_html, unsafe_allow_html=True)
+                <div>
+                    <a href="{link_whatsapp}" target="_blank" class="whatsapp-btn">Avisar</a>
+                </div>
+            </div>
+            """
+            st.markdown(card_html, unsafe_allow_html=True)
 
-        with sub_bruno: renderizar_lista([ag for ag in lista_agendamentos if ag["profissional"] == "Bruno"])
-        with sub_samuel: renderizar_lista([ag for ag in lista_agendamentos if ag["profissional"] == "Samuel"])
-        with sub_geral: renderizar_lista(lista_agendamentos)
+    # --- VISÃO BRUNO ---
+    with sub_bruno:
+        ag_bruno_data = [ag for ag in lista_agendamentos if ag["profissional"] == "Bruno" and ag["data_hora"].date() == data_consulta]
+        vagos_bruno = obter_horarios_vagose("Bruno", data_consulta)
+        
+        # Expander com os horários vagos
+        with st.expander(f"🟢 Ver {len(vagos_bruno)} horários vagos do Bruno para {data_consulta.strftime('%d/%m/%Y')}", expanded=False):
+            if vagos_bruno:
+                cols = st.columns(4)
+                for idx, hr in enumerate(vagos_bruno):
+                    cols[idx % 4].button(f"⏰ {hr}", key=f"vago_bruno_{hr}", disabled=True)
+            else:
+                st.warning("Nenhum horário livre para este dia!")
+                
+        st.markdown("#### Clientes Marcados")
+        renderizar_lista(ag_bruno_data)
 
+    # --- VISÃO SAMUEL ---
+    with sub_samuel:
+        ag_samuel_data = [ag for ag in lista_agendamentos if ag["profissional"] == "Samuel" and ag["data_hora"].date() == data_consulta]
+        vagos_samuel = obter_horarios_vagose("Samuel", data_consulta)
+        
+        # Expander com os horários vagos
+        with st.expander(f"🟢 Ver {len(vagos_samuel)} horários vagos do Samuel para {data_consulta.strftime('%d/%m/%Y')}", expanded=False):
+            if vagos_samuel:
+                cols = st.columns(4)
+                for idx, hr in enumerate(vagos_samuel):
+                    cols[idx % 4].button(f"⏰ {hr}", key=f"vago_samuel_{hr}", disabled=True)
+            else:
+                st.warning("Nenhum horário livre para este dia!")
+                
+        st.markdown("#### Clientes Marcados")
+        renderizar_lista(ag_samuel_data)
+
+    # --- VISÃO GERAL ---
+    with sub_geral:
+        ag_geral_data = [ag for ag in lista_agendamentos if ag["data_hora"].date() == data_consulta]
+        st.markdown("#### Todos os Clientes Marcados do Dia")
+        renderizar_lista(ag_geral_data)
 # --- ABA 3: CANCELAR HORÁRIO ---
 with aba3:
     lista_agendamentos = carregar_agendamentos()
