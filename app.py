@@ -50,39 +50,45 @@ def salvar_agendamentos(dados):
 # --- CSS CUSTOMIZADO ADAPTÁVEL (LIGHT & DARK MODE) ---
 st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;500;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;900&display=swap');
     
     html, body, [data-testid="stAppViewContainer"] {
         font-family: 'Montserrat', sans-serif !important;
     }
     
     /* Header do Agendamento estilo Barbearia */
-    .header-card {
-        background-color: var(--secondary-background-color) !important;
-        border: 2px solid var(--text-color) !important;
-        border-radius: 12px;
-        padding: 22px 16px;
+    .header-barber {
         text-align: center;
-        box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.08);
+        padding: 20px 0 15px 0;
         margin-bottom: 25px;
+        border-bottom: 2px solid var(--text-color);
+    }
+    .header-tag {
+        font-size: 0.75rem;
+        letter-spacing: 5px;
+        font-weight: 700;
+        opacity: 0.6;
+        text-transform: uppercase;
+        color: var(--text-color);
+        margin-bottom: 4px;
     }
     .header-title {
-        font-family: 'Bebas Neue', sans-serif !important;
-        font-size: 3rem !important;
+        font-family: 'Montserrat', sans-serif !important;
+        font-size: 2.3rem !important;
+        font-weight: 900 !important;
         letter-spacing: 3px !important;
         color: var(--text-color) !important;
         margin: 0 !important;
-        line-height: 1 !important;
+        line-height: 1.1 !important;
         text-transform: uppercase;
     }
     .header-subtitle {
-        font-family: 'Montserrat', sans-serif;
-        font-size: 0.9rem;
+        font-size: 0.8rem;
         font-weight: 600;
         color: var(--text-color);
         opacity: 0.75;
-        margin-top: 6px;
-        letter-spacing: 1px;
+        margin-top: 8px;
+        letter-spacing: 2px;
         text-transform: uppercase;
     }
     
@@ -176,12 +182,12 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- CABEÇALHO DEDICADO BARBEARIA PRETO & BRANCO ---
+# --- CABEÇALHO BARBEARIA PRETO & BRANCO ---
 st.markdown("""
-    <div class="header-card">
-        <div style="font-size: 1.8rem; margin-bottom: 4px;">💈</div>
-        <h1 class="header-title">BARBEARIA PRETO & BRANCO</h1>
-        <p class="header-subtitle">Agendamento Online & Gestão Integrada</p>
+    <div class="header-barber">
+        <div class="header-tag">• BARBERSHOP •</div>
+        <h1 class="header-title">PRETO & BRANCO</h1>
+        <div class="header-subtitle">Agendamento Online & Gestão Integrada</div>
     </div>
 """, unsafe_allow_html=True)
 
