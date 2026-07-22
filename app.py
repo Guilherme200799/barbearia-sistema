@@ -225,8 +225,22 @@ if "hora_selecionada" not in st.session_state:
     st.session_state.hora_selecionada = None
 
 # ==============================================================================
-# ABA 1: NOVO AGENDAMENTO (CALENDÁRIO VISUAL)
+# ABA 1: AGENDAR (PÁGINA INICIAL)
 # ==============================================================================
+with aba1:
+    # --- CARD DE INFORMAÇÕES DE ENDEREÇO E CONTATO ---
+    st.markdown(
+        """
+        <div class="client-card" style="margin-bottom: 25px;">
+            <p style="margin: 0 0 5px 0;">📍 <b>Endereço:</b> R. dos Toureiros, 62 - Juliana</p>
+            <p style="margin: 0;">📞 <b>Contatos para Dúvidas:</b> Bruno: <span style="color: #23a55a; font-weight: bold;">(31) 98527-1355</span> | Samuel: <span style="color: #23a55a; font-weight: bold;">(31) 98527-1355</span></p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.subheader("🗓️ Faça seu Agendamento")
+
 with aba1:
     st.subheader("Preencha os dados para agendar")
 
