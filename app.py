@@ -324,31 +324,39 @@ with aba1:
             if not ocupado:
                 horarios_disponiveis.append(h)
 
-    # --- SELETOR VISUAL EM CHIPS ---
+      # --- SELETOR VISUAL EM CHIPS (CORRIGIDO PARA MOBILE) ---
     st.write("---")
     st.markdown("### ⏰ Selecione um Horário Disponível:")
 
     if data_atendimento.weekday() != 6:
         if horarios_disponiveis:
-            grid_cols = st.columns(4)
-            for idx, hr in enumerate(horarios_disponiveis):
-                col = grid_cols[idx % 4]
-                hr_str = hr.strftime("%H:%M")
-                is_selected = st.session_state.hora_selecionada == hr
+            # Garante ordenação dos horários
+            horarios_disponiveis.sort()
 
-                btn_type = "primary" if is_selected else "secondary"
-                btn_label = f"✓ {hr_str}" if is_selected else hr_str
+            # Processa em blocos de 4 em 4 para formar linhas
+            tamanho_bloco = 4
+            for i in range(0, len(horarios_disponiveis), tamanho_bloco):
+                grupo_horarios = horarios_disponiveis[i : i + tamanho_bloco]
+                cols = st.columns(len(grupo_horarios))
 
-                if col.button(
-                    btn_label,
-                    key=f"chip_hr_{hr_str}",
-                    use_container_width=True,
-                    type=btn_type,
-                ):
-                    st.session_state.hora_selecionada = hr
-                    st.rerun()
+                for j, hr in enumerate(grupo_horarios):
+                    hr_str = hr.strftime("%H:%M")
+                    is_selected = st.session_state.hora_selecionada == hr
+
+                    btn_type = "primary" if is_selected else "secondary"
+                    btn_label = f"✓ {hr_str}" if is_selected else hr_str
+
+                    if cols[j].button(
+                        btn_label,
+                        key=f"chip_hr_{hr_str}",
+                        use_container_width=True,
+                        type=btn_type,
+                    ):
+                        st.session_state.hora_selecionada = hr
+                        st.rerun()
         else:
             st.warning("⚠️ Não há horários disponíveis para esta data.")
+
 
     st.write("---")
 
