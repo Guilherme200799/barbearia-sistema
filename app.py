@@ -184,7 +184,6 @@ st.markdown(
         display: inline-block;
     }
 
-    /* Estilização para botões de ação principal (Verdes) */
     button[kind="primary"] {
         background-color: #23a55a !important;
         color: white !important;
@@ -221,12 +220,11 @@ aba1, aba2, aba3, aba4, aba5 = st.tabs(
     ]
 )
 
-# Session State para o Horário Selecionado via Chips
 if "hora_selecionada" not in st.session_state:
     st.session_state.hora_selecionada = None
 
 # ==============================================================================
-# ABA 1: NOVO AGENDAMENTO (SELETOR DE CHIPS)
+# ABA 1: NOVO AGENDAMENTO (CALENDÁRIO VISUAL)
 # ==============================================================================
 with aba1:
     st.subheader("Preencha os dados para agendar")
@@ -263,88 +261,84 @@ with aba1:
         )
 
     hoje_dt = datetime.utcnow() - timedelta(hours=3)
-    dias_semana_pt = [
-        "Segunda-feira",
-        "Terça-feira",
-        "Quarta-feira",
-        "Quinta-feira",
-        "Sexta-feira",
-        "Sábado",
-        "Domingo",
-    ]
 
-    opcoes_datas = []
-    for i in range(30):
-        futuro = hoje_dt + timedelta(days=i)
-        if futuro.weekday() != 6:  # Não abre no Domingo
-            texto_data = f"{futuro.strftime('%d/%m/%Y')} ({dias_semana_pt[futuro.weekday()]})"
-            opcoes_datas.append((futuro.date(), texto_data))
-
-    data_selecionada = st.selectbox(
+    # --- SELEÇÃO DE DATA VIA CALENDÁRIO VISUAL ---
+    data_atendimento = st.date_input(
         "Escolha a Data:",
-        opcoes_datas,
-        format_func=lambda x: x[1],
-        key="select_data",
+        value=hoje_dt.date(),
+        min_value=hoje_dt.date(),
+        max_value=hoje_dt.date() + timedelta(days=30),
+        format="DD/MM/YYYY",
+        key="date_picker_agendar",
     )
-    data_atendimento = data_selecionada[0]
 
-    # Gera lista de horários das 08:00 às 18:00 (de 40 em 40 min)
-    dia_semana_selecionado = data_atendimento.weekday()
-    minutos_inicio = 480  # 08:00
-    minutos_fim = 1020 if dia_semana_selecionado == 5 else 1080  # 17:00 ou 18:00
-
-    horarios_todos = []
-    minutos_atual = minutos_inicio
-    while minutos_atual <= minutos_fim:
-        h_print = minutos_atual // 60
-        m_print = minutos_atual % 60
-        horarios_todos.append(dt_time(h_print, m_print))
-        minutos_atual += 40
-
-    # Filtra os horários livres
-    horarios_disponiveis = []
-    for h in horarios_todos:
-        dt_verificar = datetime.combine(data_atendimento, h)
-        if data_atendimento == hoje_dt.date() and h < hoje_dt.time():
-            continue
-
-        ocupado = any(
-            ag["profissional"] == profissional
-            and ag["data_hora"] == dt_verificar
-            for ag in lista_agendamentos
+    # Bloqueio caso o usuário selecione um domingo
+    if data_atendimento.weekday() == 6:
+        st.warning(
+            "⚠️ A barbearia não abre aos domingos. Por favor, escolha outra data."
         )
-        if not ocupado:
-            horarios_disponiveis.append(h)
+        horarios_disponiveis = []
+    else:
+        # Gera lista de horários das 08:00 às 18:00 (de 40 em 40 min)
+        dia_semana_selecionado = data_atendimento.weekday()
+        minutos_inicio = 480  # 08:00
+        minutos_fim = (
+            1020 if dia_semana_selecionado == 5 else 1080
+        )  # 17:00 no sábado ou 18:00 nos demais dias
+
+        horarios_todos = []
+        minutos_atual = minutos_inicio
+        while minutos_atual <= minutos_fim:
+            h_print = minutos_atual // 60
+            m_print = minutos_atual % 60
+            horarios_todos.append(dt_time(h_print, m_print))
+            minutos_atual += 40
+
+        # Filtra os horários livres
+        horarios_disponiveis = []
+        for h in horarios_todos:
+            dt_verificar = datetime.combine(data_atendimento, h)
+            if data_atendimento == hoje_dt.date() and h < hoje_dt.time():
+                continue
+
+            ocupado = any(
+                ag["profissional"] == profissional
+                and ag["data_hora"] == dt_verificar
+                for ag in lista_agendamentos
+            )
+            if not ocupado:
+                horarios_disponiveis.append(h)
 
     # --- SELETOR VISUAL EM CHIPS ---
     st.write("---")
     st.markdown("### ⏰ Selecione um Horário Disponível:")
 
-    if horarios_disponiveis:
-        grid_cols = st.columns(4)  # 4 botões por linha
-        for idx, hr in enumerate(horarios_disponiveis):
-            col = grid_cols[idx % 4]
-            hr_str = hr.strftime("%H:%M")
-            is_selected = st.session_state.hora_selecionada == hr
+    if data_atendimento.weekday() != 6:
+        if horarios_disponiveis:
+            grid_cols = st.columns(4)
+            for idx, hr in enumerate(horarios_disponiveis):
+                col = grid_cols[idx % 4]
+                hr_str = hr.strftime("%H:%M")
+                is_selected = st.session_state.hora_selecionada == hr
 
-            btn_type = "primary" if is_selected else "secondary"
-            btn_label = f"✓ {hr_str}" if is_selected else hr_str
+                btn_type = "primary" if is_selected else "secondary"
+                btn_label = f"✓ {hr_str}" if is_selected else hr_str
 
-            if col.button(
-                btn_label,
-                key=f"chip_hr_{hr_str}",
-                use_container_width=True,
-                type=btn_type,
-            ):
-                st.session_state.hora_selecionada = hr
-                st.rerun()
-    else:
-        st.warning("⚠️ Não há horários disponíveis para esta data.")
+                if col.button(
+                    btn_label,
+                    key=f"chip_hr_{hr_str}",
+                    use_container_width=True,
+                    type=btn_type,
+                ):
+                    st.session_state.hora_selecionada = hr
+                    st.rerun()
+        else:
+            st.warning("⚠️ Não há horários disponíveis para esta data.")
 
     st.write("---")
 
     hora_atendimento = st.session_state.hora_selecionada
-    if hora_atendimento:
+    if hora_atendimento and data_atendimento.weekday() != 6:
         st.info(
             f"Horário selecionado: **{hora_atendimento.strftime('%H:%M')}**"
         )
@@ -484,7 +478,6 @@ with aba2:
                             "🔄 Remarcar data/horário", use_container_width=True
                         ):
                             st.write("**Escolha a nova data e horário:**")
-                            # Formato da data ajustado para DD/MM/YYYY
                             nova_data = st.date_input(
                                 "Nova Data:",
                                 key=f"d_rem_{ag_id}",
@@ -536,7 +529,6 @@ with aba3:
 
     hoje_dt = datetime.utcnow() - timedelta(hours=3)
 
-    # Adicionado format="DD/MM/YYYY" para exibir em formato brasileiro
     data_consulta_sel = st.date_input(
         "Filtrar por data:", hoje_dt.date(), format="DD/MM/YYYY"
     )
