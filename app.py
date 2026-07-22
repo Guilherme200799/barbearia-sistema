@@ -530,30 +530,71 @@ with aba3:
     hoje_dt = datetime.utcnow() - timedelta(hours=3)
 
     data_consulta_sel = st.date_input(
-        "Filtrar por data:", hoje_dt.date(), format="DD/MM/YYYY"
+        "Filtrar por data:",
+        hoje_dt.date(),
+        format="DD/MM/YYYY",
+        key="date_picker_agenda_barbeiros",
     )
 
+    # Filtrar os agendamentos da data selecionada
     ag_filtrados = [
         ag
         for ag in lista_agendamentos
         if ag["data_hora"].date() == data_consulta_sel
     ]
 
-    if ag_filtrados:
-        for ag in ag_filtrados:
-            data_str = ag["data_hora"].strftime("%d/%m/%Y")
-            hora_str = ag["data_hora"].strftime("%H:%M")
-            st.markdown(
-                f"""
-            <div class="client-card">
-                <b>{ag['cliente']}</b> • {ag['servico']}<br>
-                <small>📅 {data_str} às {hora_str} | Barbeiro: <b>{ag['profissional']}</b> | 📱 {ag.get('telefone','')}</small>
-            </div>
-            """,
-                unsafe_allow_html=True,
-            )
-    else:
-        st.info("Nenhum agendamento marcado para este dia.")
+    st.write("---")
+
+    # Criando duas colunas lado a lado para cada barbeiro
+    col_bruno, col_samuel = st.columns(2)
+
+    # --- COLUNA BRUNO ---
+    with col_bruno:
+        st.markdown("### 🧔 Bruno")
+        ag_bruno = [
+            ag for ag in ag_filtrados if ag.get("profissional") == "Bruno"
+        ]
+
+        if ag_bruno:
+            # Ordena por horário
+            ag_bruno.sort(key=lambda x: x["data_hora"])
+            for ag in ag_bruno:
+                hora_str = ag["data_hora"].strftime("%H:%M")
+                st.markdown(
+                    f"""
+                <div class="client-card" style="border-left: 4px solid #23a55a !important;">
+                    <b>{ag['cliente']}</b> • {ag['servico']}<br>
+                    <small>⏰ <b>{hora_str}</b> | 📱 {ag.get('telefone','')}</small>
+                </div>
+                """,
+                    unsafe_allow_html=True,
+                )
+        else:
+            st.info("Nenhum agendamento para o Bruno nesta data.")
+
+    # --- COLUNA SAMUEL ---
+    with col_samuel:
+        st.markdown("### 🧔 Samuel")
+        ag_samuel = [
+            ag for ag in ag_filtrados if ag.get("profissional") == "Samuel"
+        ]
+
+        if ag_samuel:
+            # Ordena por horário
+            ag_samuel.sort(key=lambda x: x["data_hora"])
+            for ag in ag_samuel:
+                hora_str = ag["data_hora"].strftime("%H:%M")
+                st.markdown(
+                    f"""
+                <div class="client-card" style="border-left: 4px solid #23a55a !important;">
+                    <b>{ag['cliente']}</b> • {ag['servico']}<br>
+                    <small>⏰ <b>{hora_str}</b> | 📱 {ag.get('telefone','')}</small>
+                </div>
+                """,
+                    unsafe_allow_html=True,
+                )
+        else:
+            st.info("Nenhum agendamento para o Samuel nesta data.")
 
 # ==============================================================================
 # ABA 4: CANCELAR HORÁRIO (ADMINISTRATIVO / GERAL)
