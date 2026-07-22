@@ -183,6 +183,16 @@ st.markdown(
         font-size: 14px;
         display: inline-block;
     }
+
+    /* Estilização para botões de ação principal (Verdes) */
+    button[kind="primary"] {
+        background-color: #23a55a !important;
+        color: white !important;
+        border: none !important;
+    }
+    button[kind="primary"]:hover {
+        background-color: #1f924f !important;
+    }
     </style>
 """,
     unsafe_allow_html=True,
@@ -216,7 +226,7 @@ if "hora_selecionada" not in st.session_state:
     st.session_state.hora_selecionada = None
 
 # ==============================================================================
-# ABA 1: NOVO AGENDAMENTO (COM SELETOR DE CHIPS)
+# ABA 1: NOVO AGENDAMENTO (SELETOR DE CHIPS)
 # ==============================================================================
 with aba1:
     st.subheader("Preencha os dados para agendar")
@@ -317,7 +327,6 @@ with aba1:
             hr_str = hr.strftime("%H:%M")
             is_selected = st.session_state.hora_selecionada == hr
 
-            # Se selecionado, exibe como botão primário (destacado/verde)
             btn_type = "primary" if is_selected else "secondary"
             btn_label = f"✓ {hr_str}" if is_selected else hr_str
 
@@ -402,7 +411,7 @@ with aba1:
                 )
 
 # ==============================================================================
-# ABA 2: REAGENDAMENTO / AUTONOMIA DO CLIENTE
+# ABA 2: REAGENDAMENTO / AUTONOMIA DO CLIENTE (COM BOTÃO DE BUSCA LADO A LADO)
 # ==============================================================================
 with aba2:
     st.subheader("Área do Cliente: Meus Agendamentos")
@@ -410,17 +419,31 @@ with aba2:
         "Digite seu número de WhatsApp para ver, remarcar ou cancelar seus horários."
     )
 
-    tel_consulta = st.text_input(
-        "Número do seu WhatsApp:",
-        placeholder="Ex: 31985271355",
-        key="input_consulta_cli",
-    ).strip()
+    # Organiza o campo de input e o botão verde de busca lado a lado
+    col_input, col_btn = st.columns([3, 1], vertical_alignment="bottom")
 
-    if tel_consulta:
+    with col_input:
+        tel_consulta = st.text_input(
+            "Número do seu WhatsApp:",
+            placeholder="Ex: 31985271355",
+            key="input_consulta_cli",
+        ).strip()
+
+    with col_btn:
+        buscar_clicado = st.button(
+            "🔍 Buscar",
+            key="btn_buscar_agendamentos",
+            type="primary",
+            use_container_width=True,
+        )
+
+    # Dispara a busca se o botão for clicado ou se já houver número digitado
+    if tel_consulta and (
+        buscar_clicado or st.session_state.get("input_consulta_cli")
+    ):
         tel_limpo = "".join(filter(str.isdigit, tel_consulta))
         lista_agendamentos = carregar_agendamentos()
 
-        # Filtra apenas os agendamentos do cliente (do momento atual para frente)
         meus_agendamentos = [
             ag
             for ag in lista_agendamentos
@@ -429,7 +452,9 @@ with aba2:
         ]
 
         if meus_agendamentos:
-            st.write(f"Encontrado(s) **{len(meus_agendamentos)}** agendamento(s):")
+            st.write(
+                f"Encontrado(s) **{len(meus_agendamentos)}** agendamento(s):"
+            )
             for ag in meus_agendamentos:
                 ag_id = ag.get("id")
                 data_f = ag["data_hora"].strftime("%d/%m/%Y")
@@ -445,7 +470,6 @@ with aba2:
 
                     col_cli_rem, col_cli_del = st.columns(2)
 
-                    # Botão para Cancelar
                     with col_cli_del:
                         if st.button(
                             "❌ Cancelar este horário",
@@ -457,7 +481,6 @@ with aba2:
                                 time.sleep(0.8)
                                 st.rerun()
 
-                    # Popover para Remarcar
                     with col_cli_rem:
                         with st.popover(
                             "🔄 Remarcar data/horário", use_container_width=True
@@ -496,7 +519,7 @@ with aba2:
 
                                 if atualizar_agendamento(ag_id, nova_dt_comp):
                                     st.success(
-                                        "Horário remarcaço com sucesso!"
+                                        "Horário remarcado com sucesso!"
                                     )
                                     time.sleep(0.8)
                                     st.rerun()
