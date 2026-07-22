@@ -411,7 +411,7 @@ with aba1:
                 )
 
 # ==============================================================================
-# ABA 2: REAGENDAMENTO / AUTONOMIA DO CLIENTE (COM BOTÃO DE BUSCA LADO A LADO)
+# ABA 2: REAGENDAMENTO / AUTONOMIA DO CLIENTE
 # ==============================================================================
 with aba2:
     st.subheader("Área do Cliente: Meus Agendamentos")
@@ -419,7 +419,6 @@ with aba2:
         "Digite seu número de WhatsApp para ver, remarcar ou cancelar seus horários."
     )
 
-    # Organiza o campo de input e o botão verde de busca lado a lado
     col_input, col_btn = st.columns([3, 1], vertical_alignment="bottom")
 
     with col_input:
@@ -437,7 +436,6 @@ with aba2:
             use_container_width=True,
         )
 
-    # Dispara a busca se o botão for clicado ou se já houver número digitado
     if tel_consulta and (
         buscar_clicado or st.session_state.get("input_consulta_cli")
     ):
@@ -486,8 +484,11 @@ with aba2:
                             "🔄 Remarcar data/horário", use_container_width=True
                         ):
                             st.write("**Escolha a nova data e horário:**")
+                            # Formato da data ajustado para DD/MM/YYYY
                             nova_data = st.date_input(
-                                "Nova Data:", key=f"d_rem_{ag_id}"
+                                "Nova Data:",
+                                key=f"d_rem_{ag_id}",
+                                format="DD/MM/YYYY",
                             )
                             nova_hora_str = st.selectbox(
                                 "Novo Horário:",
@@ -534,7 +535,11 @@ with aba3:
     lista_agendamentos = carregar_agendamentos()
 
     hoje_dt = datetime.utcnow() - timedelta(hours=3)
-    data_consulta_sel = st.date_input("Filtrar por data:", hoje_dt.date())
+
+    # Adicionado format="DD/MM/YYYY" para exibir em formato brasileiro
+    data_consulta_sel = st.date_input(
+        "Filtrar por data:", hoje_dt.date(), format="DD/MM/YYYY"
+    )
 
     ag_filtrados = [
         ag
