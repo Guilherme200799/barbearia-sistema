@@ -631,12 +631,12 @@ with aba4:
             st.divider()
 
 # ==============================================================================
+# ==============================================================================
 # ABA 5: PAINEL ADMINISTRATIVO
 # ==============================================================================
 with aba5:
     st.subheader("🔒 Acesso Restrito - Gestão da Barbearia")
 
-    # Form para permitir submeter a senha clicando no botão ou com a tecla Enter
     with st.form(key="form_login_admin"):
         col_pass, col_btn_login = st.columns([3, 1], vertical_alignment="bottom")
         with col_pass:
@@ -657,35 +657,79 @@ with aba5:
         if not lista_agendamentos:
             st.info("Nenhum dado cadastrado até o momento.")
         else:
-            # --- CÁLCULOS DE MÉTRICAS ---
-            total_agendamentos = len(lista_agendamentos)
+            # --- ÁREA DE FILTROS ---
+            st.markdown("### 🔍 Filtros do Relatório")
+            col_f1, col_f2 = st.columns(2)
 
-            # Faturamento Total Estimado
+            with col_f1:
+                periodo_sel = st.selectbox(
+                    "Filtrar por Período:",
+                    [
+                        "Todos",
+                        "Hoje (Diário)",
+                        "Últimos 7 dias (Semanal)",
+                        "Mês Atual (Mensal)",
+                        "Últimos 6 meses (Semestral)",
+                        "Ano Atual (Anual)",
+                    ],
+                    key="filtro_periodo_admin",
+                )
+
+            with col_f2:
+                barbeiro_sel = st.selectbox(
+                    "Filtrar por Barbeiro:",
+                    ["Todos os Barbeiros", "Bruno", "Samuel"],
+                    key="filtro_barbeiro_admin",
+                )
+
+            # --- LÓGICA DE FILTRAGEM POR DATA ---
+            hoje_dt = datetime.utcnow() - timedelta(hours=3)
+            ag_filtrados = []
+
+            for ag in lista_agendamentos:
+                dt_ag = ag["data_hora"]
+
+                # Filtro de Período
+                passou_periodo = False
+                if periodo_sel == "Todos":
+                    passou_periodo = True
+                elif periodo_sel == "Hoje (Diário)":
+                    passou_periodo = dt_ag.date() == hoje_dt.date()
+                elif periodo_sel == "Últimos 7 dias (Semanal)":
+                    passou_periodo = (
+                        hoje_dt.date() - timedelta(days=7)
+                        <= dt_ag.date()
+                        <= hoje_dt.date() + timedelta(days=7)
+                    )
+                elif periodo_sel == "Mês Atual (Mensal)":
+                    passou_periodo = (
+                        dt_ag.year == hoje_dt.year
+                        and dt_ag.month == hoje_dt.month
+                    )
+                elif periodo_sel == "Últimos 6 meses (Semestral)":
+                    seis_meses_atras = hoje_dt - timedelta(days=180)
+                    passou_periodo = dt_ag >= seis_meses_atras
+                elif periodo_sel == "Ano Atual (Anual)":
+                    passou_periodo = dt_ag.year == hoje_dt.year
+
+                # Filtro de Barbeiro
+                passou_barbeiro = False
+                if barbeiro_sel == "Todos os Barbeiros":
+                    passou_barbeiro = True
+                else:
+                    passou_barbeiro = ag.get("profissional") == barbeiro_sel
+
+                if passou_periodo and passou_barbeiro:
+                    ag_filtrados.append(ag)
+
+            # --- CÁLCULOS DAS MÉTRICAS ---
+            total_agendamentos = len(ag_filtrados)
             faturamento_total = sum(
                 PRECOS_SERVICOS.get(ag.get("servico", ""), 0.0)
-                for ag in lista_agendamentos
+                for ag in ag_filtrados
             )
 
-            # Métricas individuais de Bruno e Samuel
-            ag_bruno = [
-                ag
-                for ag in lista_agendamentos
-                if ag.get("profissional") == "Bruno"
-            ]
-            ag_samuel = [
-                ag
-                for ag in lista_agendamentos
-                if ag.get("profissional") == "Samuel"
-            ]
-
-            fat_bruno = sum(
-                PRECOS_SERVICOS.get(ag.get("servico", ""), 0.0)
-                for ag in ag_bruno
-            )
-            fat_samuel = sum(
-                PRECOS_SERVICOS.get(ag.get("servico", ""), 0.0)
-                for ag in ag_samuel
-            )
+            st.write("---")
 
             # --- CARDS DE MÉTRICAS DE TOPO ---
             m1, m2 = st.columns(2)
@@ -696,17 +740,49 @@ with aba5:
 
             st.write("---")
 
-            # --- RESUMO POR BARBEIRO ---
-            st.markdown("### 📊 Desempenho por Barbeiro")
+            # --- RESUMO E QUANTIDADE DE SERVIÇOS POR BARBEIRO ---
+            st.markdown("### 📊 Desempenho e Quantidade de Serviços")
             col_b1, col_b2 = st.columns(2)
+
+            # Dados Bruno
+            ag_bruno = [
+                ag for ag in ag_filtrados if ag.get("profissional") == "Bruno"
+            ]
+            fat_bruno = sum(
+                PRECOS_SERVICOS.get(ag.get("servico", ""), 0.0)
+                for ag in ag_bruno
+            )
+
+            # Dados Samuel
+            ag_samuel = [
+                ag for ag in ag_filtrados if ag.get("profissional") == "Samuel"
+            ]
+            fat_samuel = sum(
+                PRECOS_SERVICOS.get(ag.get("servico", ""), 0.0)
+                for ag in ag_samuel
+            )
+
+            # Contagem de serviços por barbeiro
+            def contar_servicos(lista):
+                contagem = {}
+                for ag in lista:
+                    s = ag.get("servico", "Outro")
+                    contagem[s] = contagem.get(s, 0) + 1
+                return contagem
+
+            servicos_bruno = contar_servicos(ag_bruno)
+            servicos_samuel = contar_servicos(ag_samuel)
 
             with col_b1:
                 st.markdown(
                     f"""
                 <div class="client-card" style="border-left: 4px solid #23a55a !important;">
                     <h4 style="margin:0;">🧔 Bruno</h4>
-                    <p style="margin:5px 0 0 0;"><b>Agendamentos:</b> {len(ag_bruno)}</p>
-                    <p style="margin:0;"><b>Faturamento:</b> R$ {fat_bruno:.2f}</p>
+                    <p style="margin:5px 0 0 0;"><b>Total Atendimentos:</b> {len(ag_bruno)}</p>
+                    <p style="margin:0 0 10px 0;"><b>Faturamento:</b> R$ {fat_bruno:.2f}</p>
+                    <hr style="margin: 8px 0; opacity: 0.3;">
+                    <b>Serviços realizados:</b><br>
+                    {''.join([f'<small>• {srv}: <b>{qtd}</b></small><br>' for srv, qtd in servicos_bruno.items()]) if servicos_bruno else '<small>Nenhum serviço no período.</small>'}
                 </div>
                 """,
                     unsafe_allow_html=True,
@@ -717,8 +793,11 @@ with aba5:
                     f"""
                 <div class="client-card" style="border-left: 4px solid #23a55a !important;">
                     <h4 style="margin:0;">🧔 Samuel</h4>
-                    <p style="margin:5px 0 0 0;"><b>Agendamentos:</b> {len(ag_samuel)}</p>
-                    <p style="margin:0;"><b>Faturamento:</b> R$ {fat_samuel:.2f}</p>
+                    <p style="margin:5px 0 0 0;"><b>Total Atendimentos:</b> {len(ag_samuel)}</p>
+                    <p style="margin:0 0 10px 0;"><b>Faturamento:</b> R$ {fat_samuel:.2f}</p>
+                    <hr style="margin: 8px 0; opacity: 0.3;">
+                    <b>Serviços realizados:</b><br>
+                    {''.join([f'<small>• {srv}: <b>{qtd}</b></small><br>' for srv, qtd in servicos_samuel.items()]) if servicos_samuel else '<small>Nenhum serviço no período.</small>'}
                 </div>
                 """,
                     unsafe_allow_html=True,
@@ -726,25 +805,30 @@ with aba5:
 
             st.write("---")
 
-            # --- TABELA DE TODOS OS AGENDAMENTOS ---
-            st.markdown("### 📋 Lista de Todos os Agendamentos")
+            # --- TABELA DE AGENDAMENTOS FILTRADOS ---
+            st.markdown("### 📋 Lista de Agendamentos (Filtrados)")
 
-            tabela_dados = []
-            for ag in lista_agendamentos:
-                tabela_dados.append(
-                    {
-                        "Cliente": ag.get("cliente"),
-                        "Telefone": ag.get("telefone"),
-                        "Serviço": ag.get("servico"),
-                        "Barbeiro": ag.get("profissional"),
-                        "Data/Hora": ag["data_hora"].strftime(
-                            "%d/%m/%Y às %H:%M"
-                        ),
-                        "Valor": f"R$ {PRECOS_SERVICOS.get(ag.get('servico',''), 0.0):.2f}",
-                    }
+            if ag_filtrados:
+                tabela_dados = []
+                for ag in ag_filtrados:
+                    tabela_dados.append(
+                        {
+                            "Cliente": ag.get("cliente"),
+                            "Telefone": ag.get("telefone"),
+                            "Serviço": ag.get("servico"),
+                            "Barbeiro": ag.get("profissional"),
+                            "Data/Hora": ag["data_hora"].strftime(
+                                "%d/%m/%Y às %H:%M"
+                            ),
+                            "Valor": f"R$ {PRECOS_SERVICOS.get(ag.get('servico',''), 0.0):.2f}",
+                        }
+                    )
+
+                st.dataframe(tabela_dados, use_container_width=True)
+            else:
+                st.info(
+                    "Nenhum agendamento encontrado para os filtros selecionados."
                 )
-
-            st.dataframe(tabela_dados, use_container_width=True)
 
     elif senha != "":
         st.error("Senha incorreta. Verifique e tente novamente.")
