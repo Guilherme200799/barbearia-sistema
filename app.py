@@ -636,7 +636,7 @@ with aba4:
 with aba5:
     st.subheader("🔒 Acesso Restrito - Gestão da Barbearia")
 
-    # Utilizando st.form para permitir envio com a tecla Enter ou no botão
+    # Form para permitir submeter a senha clicando no botão ou com a tecla Enter
     with st.form(key="form_login_admin"):
         col_pass, col_btn_login = st.columns([3, 1], vertical_alignment="bottom")
         with col_pass:
@@ -666,7 +666,7 @@ with aba5:
                 for ag in lista_agendamentos
             )
 
-            # Métricas de Bruno e Samuel
+            # Métricas individuais de Bruno e Samuel
             ag_bruno = [
                 ag
                 for ag in lista_agendamentos
@@ -688,13 +688,11 @@ with aba5:
             )
 
             # --- CARDS DE MÉTRICAS DE TOPO ---
-            m1, m2, m3 = st.columns(3)
+            m1, m2 = st.columns(2)
             with m1:
                 st.metric("Total de Agendamentos", f"{total_agendamentos}")
             with m2:
                 st.metric("Faturamento Projetado", f"R$ {faturamento_total:.2f}")
-        
-                )
 
             st.write("---")
 
@@ -731,7 +729,6 @@ with aba5:
             # --- TABELA DE TODOS OS AGENDAMENTOS ---
             st.markdown("### 📋 Lista de Todos os Agendamentos")
 
-            # Formata os dados para exibição limpa em tabela
             tabela_dados = []
             for ag in lista_agendamentos:
                 tabela_dados.append(
