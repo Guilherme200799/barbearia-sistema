@@ -1,3 +1,4 @@
+import locale
 import time
 import urllib.parse
 from datetime import datetime, timedelta
