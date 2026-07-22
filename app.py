@@ -634,8 +634,123 @@ with aba4:
 # ABA 5: PAINEL ADMINISTRATIVO
 # ==============================================================================
 with aba5:
-    senha = st.text_input(
-        "Senha administrativa:", type="password", key="input_senha"
-    )
+    st.subheader("🔒 Acesso Restrito - Gestão da Barbearia")
+
+    # Utilizando st.form para permitir envio com a tecla Enter ou no botão
+    with st.form(key="form_login_admin"):
+        col_pass, col_btn_login = st.columns([3, 1], vertical_alignment="bottom")
+        with col_pass:
+            senha = st.text_input(
+                "Senha administrativa:", type="password", key="input_senha"
+            )
+        with col_btn_login:
+            btn_login = st.form_submit_button(
+                "🔓 Entrar", type="primary", use_container_width=True
+            )
+
     if senha == "admin123":
         st.success("Painel do Administrador Autenticado")
+        st.write("---")
+
+        lista_agendamentos = carregar_agendamentos()
+
+        if not lista_agendamentos:
+            st.info("Nenhum dado cadastrado até o momento.")
+        else:
+            # --- CÁLCULOS DE MÉTRICAS ---
+            total_agendamentos = len(lista_agendamentos)
+
+            # Faturamento Total Estimado
+            faturamento_total = sum(
+                PRECOS_SERVICOS.get(ag.get("servico", ""), 0.0)
+                for ag in lista_agendamentos
+            )
+
+            # Métricas de Bruno e Samuel
+            ag_bruno = [
+                ag
+                for ag in lista_agendamentos
+                if ag.get("profissional") == "Bruno"
+            ]
+            ag_samuel = [
+                ag
+                for ag in lista_agendamentos
+                if ag.get("profissional") == "Samuel"
+            ]
+
+            fat_bruno = sum(
+                PRECOS_SERVICOS.get(ag.get("servico", ""), 0.0)
+                for ag in ag_bruno
+            )
+            fat_samuel = sum(
+                PRECOS_SERVICOS.get(ag.get("servico", ""), 0.0)
+                for ag in ag_samuel
+            )
+
+            # --- CARDS DE MÉTRICAS DE TOPO ---
+            m1, m2, m3 = st.columns(3)
+            with m1:
+                st.metric("Total de Agendamentos", f"{total_agendamentos}")
+            with m2:
+                st.metric("Faturamento Projetado", f"R$ {faturamento_total:.2f}")
+            with m3:
+                st.metric(
+                    "Ticket Médio",
+                    f"R$ {(faturamento_total/total_agendamentos if total_agendamentos > 0 else 0):.2f}",
+                )
+
+            st.write("---")
+
+            # --- RESUMO POR BARBEIRO ---
+            st.markdown("### 📊 Desempenho por Barbeiro")
+            col_b1, col_b2 = st.columns(2)
+
+            with col_b1:
+                st.markdown(
+                    f"""
+                <div class="client-card" style="border-left: 4px solid #23a55a !important;">
+                    <h4 style="margin:0;">🧔 Bruno</h4>
+                    <p style="margin:5px 0 0 0;"><b>Agendamentos:</b> {len(ag_bruno)}</p>
+                    <p style="margin:0;"><b>Faturamento:</b> R$ {fat_bruno:.2f}</p>
+                </div>
+                """,
+                    unsafe_allow_html=True,
+                )
+
+            with col_b2:
+                st.markdown(
+                    f"""
+                <div class="client-card" style="border-left: 4px solid #23a55a !important;">
+                    <h4 style="margin:0;">🧔 Samuel</h4>
+                    <p style="margin:5px 0 0 0;"><b>Agendamentos:</b> {len(ag_samuel)}</p>
+                    <p style="margin:0;"><b>Faturamento:</b> R$ {fat_samuel:.2f}</p>
+                </div>
+                """,
+                    unsafe_allow_html=True,
+                )
+
+            st.write("---")
+
+            # --- TABELA DE TODOS OS AGENDAMENTOS ---
+            st.markdown("### 📋 Lista de Todos os Agendamentos")
+
+            # Formata os dados para exibição limpa em tabela
+            tabela_dados = []
+            for ag in lista_agendamentos:
+                tabela_dados.append(
+                    {
+                        "Cliente": ag.get("cliente"),
+                        "Telefone": ag.get("telefone"),
+                        "Serviço": ag.get("servico"),
+                        "Barbeiro": ag.get("profissional"),
+                        "Data/Hora": ag["data_hora"].strftime(
+                            "%d/%m/%Y às %H:%M"
+                        ),
+                        "Valor": f"R$ {PRECOS_SERVICOS.get(ag.get('servico',''), 0.0):.2f}",
+                    }
+                )
+
+            st.dataframe(tabela_dados, use_container_width=True)
+
+    elif senha != "":
+        st.error("Senha incorreta. Verifique e tente novamente.")
