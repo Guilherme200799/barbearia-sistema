@@ -693,10 +693,7 @@ with aba5:
                 st.metric("Total de Agendamentos", f"{total_agendamentos}")
             with m2:
                 st.metric("Faturamento Projetado", f"R$ {faturamento_total:.2f}")
-            with m3:
-                st.metric(
-                    "Ticket Médio",
-                    f"R$ {(faturamento_total/total_agendamentos if total_agendamentos > 0 else 0):.2f}",
+        
                 )
 
             st.write("---")
