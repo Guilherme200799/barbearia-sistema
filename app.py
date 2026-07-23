@@ -224,11 +224,13 @@ aba1, aba2, aba3, aba4, aba5 = st.tabs(
 if "hora_selecionada" not in st.session_state:
     st.session_state.hora_selecionada = None
 
+if "tel_busca" not in st.session_state:
+    st.session_state.tel_busca = ""
+
 # ==============================================================================
-# ABA 1: AGENDAR (PÁGINA INICIAL)
+# ABA 1: AGENDAR
 # ==============================================================================
 with aba1:
-    # --- CARD DE INFORMAÇÕES DE ENDEREÇO E CONTATO COM LINK DO WHATSAPP ---
     st.markdown(
         """
         <div class="client-card" style="margin-bottom: 25px;">
@@ -278,7 +280,6 @@ with aba1:
 
     hoje_dt = datetime.utcnow() - timedelta(hours=3)
 
-    # --- SELEÇÃO DE DATA VIA CALENDÁRIO VISUAL ---
     data_atendimento = st.date_input(
         "Escolha a Data:",
         value=hoje_dt.date(),
@@ -288,19 +289,13 @@ with aba1:
         key="date_picker_agendar",
     )
 
-    # Bloqueio caso o usuário selecione um domingo
     if data_atendimento.weekday() == 6:
-        st.warning(
-            "⚠️ A barbearia não abre aos domingos. Por favor, escolha outra data."
-        )
+        st.warning("⚠️ A barbearia não abre aos domingos. Por favor, escolha outra data.")
         horarios_disponiveis = []
     else:
-        # Gera lista de horários das 08:00 às 18:00 (de 40 em 40 min)
         dia_semana_selecionado = data_atendimento.weekday()
-        minutos_inicio = 480  # 08:00
-        minutos_fim = (
-            1020 if dia_semana_selecionado == 5 else 1080
-        )  # 17:00 no sábado ou 18:00 nos demais dias
+        minutos_inicio = 480
+        minutos_fim = 1020 if dia_semana_selecionado == 5 else 1080
 
         horarios_todos = []
         minutos_atual = minutos_inicio
@@ -310,7 +305,6 @@ with aba1:
             horarios_todos.append(dt_time(h_print, m_print))
             minutos_atual += 40
 
-        # Filtra os horários livres
         horarios_disponiveis = []
         for h in horarios_todos:
             dt_verificar = datetime.combine(data_atendimento, h)
@@ -325,7 +319,6 @@ with aba1:
             if not ocupado:
                 horarios_disponiveis.append(h)
 
-    # --- SELETOR VISUAL EM CHIPS (CORRIGIDO PARA MOBILE) ---
     st.write("---")
     st.markdown("### ⏰ Selecione um Horário Disponível:")
 
@@ -360,12 +353,8 @@ with aba1:
 
     hora_atendimento = st.session_state.hora_selecionada
     if hora_atendimento and data_atendimento.weekday() != 6:
-        st.info(
-            f"Horário selecionado: **{hora_atendimento.strftime('%H:%M')}**"
-        )
-        botao_agendar = st.button(
-            "Confirmar Agendamento", use_container_width=True, type="primary"
-        )
+        st.info(f"Horário selecionado: **{hora_atendimento.strftime('%H:%M')}**")
+        botao_agendar = st.button("Confirmar Agendamento", use_container_width=True, type="primary")
     else:
         st.caption("Clique em um dos horários acima para escolher.")
         botao_agendar = False
@@ -386,9 +375,7 @@ with aba1:
             elif not tel_limpo.startswith("55") and len(tel_limpo) >= 10:
                 tel_limpo = "55" + tel_limpo
 
-            sucesso = salvar_agendamento(
-                cliente, tel_limpo, servico, profissional, dt_completo
-            )
+            sucesso = salvar_agendamento(cliente, tel_limpo, servico, profissional, dt_completo)
 
             if sucesso:
                 data_f = data_atendimento.strftime("%d/%m/%Y")
@@ -403,11 +390,7 @@ with aba1:
                     f"📍 *Endereço:* {ENDERECO_BARBEARIA}"
                 )
 
-                num_barbeiro = (
-                    CONTATO_BRUNO
-                    if profissional == "Bruno"
-                    else CONTATO_SAMUEL
-                )
+                num_barbeiro = CONTATO_BRUNO if profissional == "Bruno" else CONTATO_SAMUEL
                 link_wa = f"https://wa.me/{num_barbeiro}?text={urllib.parse.quote(texto_msg)}"
 
                 st.success(f"🎉 Horário reservado com sucesso para {cliente}!")
@@ -426,34 +409,30 @@ with aba1:
                 )
 
 # ==============================================================================
-# ABA 2: REAGENDAMENTO / AUTONOMIA DO CLIENTE
+# ABA 2: REAGENDAMENTO (CORRIGIDA)
 # ==============================================================================
 with aba2:
     st.subheader("Área do Cliente: Meus Agendamentos")
-    st.write(
-        "Digite seu número de WhatsApp para ver, remarcar ou cancelar seus horários."
-    )
+    st.write("Digite seu número de WhatsApp para ver, remarcar ou cancelar seus horários.")
 
     col_input, col_btn = st.columns([3, 1], vertical_alignment="bottom")
 
     with col_input:
-        tel_consulta = st.text_input(
+        val_input = st.text_input(
             "Número do seu WhatsApp:",
+            value=st.session_state.tel_busca,
             placeholder="Ex: 31985271355",
             key="input_consulta_cli",
         ).strip()
 
     with col_btn:
-        buscar_clicado = st.button(
-            "🔍 Buscar",
-            key="btn_buscar_agendamentos",
-            type="primary",
-            use_container_width=True,
-        )
+        if st.button("🔍 Buscar", key="btn_buscar_agendamentos", type="primary", use_container_width=True):
+            st.session_state.tel_busca = val_input
+            st.rerun()
 
-    if tel_consulta and (
-        buscar_clicado or st.session_state.get("input_consulta_cli")
-    ):
+    tel_consulta = st.session_state.tel_busca if st.session_state.tel_busca else val_input
+
+    if tel_consulta:
         tel_limpo = "".join(filter(str.isdigit, tel_consulta))
         lista_agendamentos = carregar_agendamentos()
 
@@ -461,13 +440,11 @@ with aba2:
             ag
             for ag in lista_agendamentos
             if tel_limpo in ag.get("telefone", "")
-            and ag["data_hora"] >= datetime.utcnow() - timedelta(hours=3)
+            and ag["data_hora"] >= (datetime.utcnow() - timedelta(hours=3))
         ]
 
         if meus_agendamentos:
-            st.write(
-                f"Encontrado(s) **{len(meus_agendamentos)}** agendamento(s):"
-            )
+            st.write(f"Encontrado(s) **{len(meus_agendamentos)}** agendamento(s):")
             for ag in meus_agendamentos:
                 ag_id = ag.get("id")
                 data_f = ag["data_hora"].strftime("%d/%m/%Y")
@@ -485,24 +462,18 @@ with aba2:
                     col_cli_rem, col_cli_del = st.columns(2)
 
                     with col_cli_del:
-                        if st.button(
-                            "❌ Cancelar este horário",
-                            key=f"cli_del_{ag_id}",
-                            use_container_width=True,
-                        ):
+                        if st.button("❌ Cancelar este horário", key=f"cli_del_{ag_id}", use_container_width=True):
                             if deletar_agendamento(ag_id):
                                 st.success("Agendamento cancelado com sucesso!")
                                 time.sleep(0.8)
                                 st.rerun()
 
                     with col_cli_rem:
-                        with st.popover(
-                            "🔄 Remarcar data/horário", use_container_width=True
-                        ):
+                        with st.popover("🔄 Remarcar data/horário", use_container_width=True):
                             st.write("**Escolha a nova data e horário:**")
-                            
+
                             hoje_dt_rem = datetime.utcnow() - timedelta(hours=3)
-                            
+
                             nova_data = st.date_input(
                                 "Nova Data:",
                                 value=ag["data_hora"].date(),
@@ -516,58 +487,51 @@ with aba2:
                                 st.warning("⚠️ Não funcionamos aos domingos.")
                                 nova_hora_str = None
                             else:
-                                # Gera horários de atendimento
                                 dia_s = nova_data.weekday()
                                 min_i = 480
                                 min_f = 1020 if dia_s == 5 else 1080
-                                
-                                horarios_posseis = []
+
+                                hor_totais = []
                                 curr = min_i
                                 while curr <= min_f:
-                                    horarios_posseis.append(dt_time(curr // 60, curr % 60))
+                                    hor_totais.append(dt_time(curr // 60, curr % 60))
                                     curr += 40
 
-                                # Filtra ocupados mantendo a verificação do profissional
-                                horarios_remarcar_livres = []
-                                for h in horarios_posseis:
+                                hor_livres = []
+                                for h in hor_totais:
                                     dt_v = datetime.combine(nova_data, h)
+
                                     if nova_data == hoje_dt_rem.date() and h < hoje_dt_rem.time():
                                         continue
-                                    
-                                    # Se for o próprio agendamento atual, permite manter
+
+                                    # Libera o próprio horário atual se for no mesmo dia/barbeiro
                                     if dt_v == ag["data_hora"]:
-                                        horarios_remarcar_livres.append(h.strftime("%H:%M"))
+                                        hor_livres.append(h.strftime("%H:%M"))
                                         continue
 
-                                    oc = any(
+                                    ocupado = any(
                                         x["profissional"] == prof_ag and x["data_hora"] == dt_v
                                         for x in lista_agendamentos
                                     )
-                                    if not oc:
-                                        horarios_remarcar_livres.append(h.strftime("%H:%M"))
+                                    if not ocupado:
+                                        hor_livres.append(h.strftime("%H:%M"))
 
-                                if horarios_remarcar_livres:
+                                if hor_livres:
                                     nova_hora_str = st.selectbox(
                                         "Novo Horário:",
-                                        horarios_remarcar_livres,
+                                        hor_livres,
                                         key=f"h_rem_{ag_id}",
                                     )
                                 else:
-                                    st.warning("Nenhum horário vago para este dia.")
+                                    st.warning("Nenhum horário vago nesta data.")
                                     nova_hora_str = None
 
-                            if nova_hora_str and st.button(
-                                "Confirmar Alteração", key=f"btn_rem_{ag_id}", type="primary"
-                            ):
+                            if nova_hora_str and st.button("Confirmar Alteração", key=f"btn_rem_{ag_id}", type="primary"):
                                 h_p, m_p = map(int, nova_hora_str.split(":"))
-                                nova_dt_comp = datetime.combine(
-                                    nova_data, dt_time(h_p, m_p)
-                                )
+                                nova_dt_comp = datetime.combine(nova_data, dt_time(h_p, m_p))
 
                                 if atualizar_agendamento(ag_id, nova_dt_comp):
-                                    st.success(
-                                        "Horário remarcado com sucesso!"
-                                    )
+                                    st.success("Horário remarcado com sucesso!")
                                     time.sleep(0.8)
                                     st.rerun()
         else:
@@ -589,24 +553,17 @@ with aba3:
         key="date_picker_agenda_barbeiros",
     )
 
-    # Filtrar os agendamentos da data selecionada
     ag_filtrados = [
-        ag
-        for ag in lista_agendamentos
-        if ag["data_hora"].date() == data_consulta_sel
+        ag for ag in lista_agendamentos if ag["data_hora"].date() == data_consulta_sel
     ]
 
     st.write("---")
 
-    # Criando duas colunas lado a lado para cada barbeiro
     col_bruno, col_samuel = st.columns(2)
 
-    # --- COLUNA BRUNO ---
     with col_bruno:
         st.markdown("### 🧔 Bruno")
-        ag_bruno = [
-            ag for ag in ag_filtrados if ag.get("profissional") == "Bruno"
-        ]
+        ag_bruno = [ag for ag in ag_filtrados if ag.get("profissional") == "Bruno"]
 
         if ag_bruno:
             ag_bruno.sort(key=lambda x: x["data_hora"])
@@ -624,12 +581,9 @@ with aba3:
         else:
             st.info("Nenhum agendamento para o Bruno nesta data.")
 
-    # --- COLUNA SAMUEL ---
     with col_samuel:
         st.markdown("### 🧔 Samuel")
-        ag_samuel = [
-            ag for ag in ag_filtrados if ag.get("profissional") == "Samuel"
-        ]
+        ag_samuel = [ag for ag in ag_filtrados if ag.get("profissional") == "Samuel"]
 
         if ag_samuel:
             ag_samuel.sort(key=lambda x: x["data_hora"])
@@ -669,11 +623,7 @@ with aba4:
                     unsafe_allow_html=True,
                 )
             with col_btn:
-                if st.button(
-                    "🗑️ Excluir",
-                    key=f"del_adm_{ag_id}",
-                    use_container_width=True,
-                ):
+                if st.button("🗑️ Excluir", key=f"del_adm_{ag_id}", use_container_width=True):
                     if deletar_agendamento(ag_id):
                         st.success("Cancelado!")
                         time.sleep(0.5)
@@ -689,13 +639,9 @@ with aba5:
     with st.form(key="form_login_admin"):
         col_pass, col_btn_login = st.columns([3, 1], vertical_alignment="bottom")
         with col_pass:
-            senha = st.text_input(
-                "Senha administrativa:", type="password", key="input_senha"
-            )
+            senha = st.text_input("Senha administrativa:", type="password", key="input_senha")
         with col_btn_login:
-            btn_login = st.form_submit_button(
-                "🔓 Entrar", type="primary", use_container_width=True
-            )
+            btn_login = st.form_submit_button("🔓 Entrar", type="primary", use_container_width=True)
 
     if senha == "admin123":
         st.success("Painel do Administrador Autenticado")
@@ -748,10 +694,7 @@ with aba5:
                         <= hoje_dt.date() + timedelta(days=7)
                     )
                 elif periodo_sel == "Mês Atual (Mensal)":
-                    passou_periodo = (
-                        dt_ag.year == hoje_dt.year
-                        and dt_ag.month == hoje_dt.month
-                    )
+                    passou_periodo = dt_ag.year == hoje_dt.year and dt_ag.month == hoje_dt.month
                 elif periodo_sel == "Últimos 6 meses (Semestral)":
                     seis_meses_atras = hoje_dt - timedelta(days=180)
                     passou_periodo = dt_ag >= seis_meses_atras
@@ -769,8 +712,7 @@ with aba5:
 
             total_agendamentos = len(ag_filtrados)
             faturamento_total = sum(
-                PRECOS_SERVICOS.get(ag.get("servico", ""), 0.0)
-                for ag in ag_filtrados
+                PRECOS_SERVICOS.get(ag.get("servico", ""), 0.0) for ag in ag_filtrados
             )
 
             st.write("---")
@@ -786,21 +728,11 @@ with aba5:
             st.markdown("### 📊 Desempenho e Quantidade de Serviços")
             col_b1, col_b2 = st.columns(2)
 
-            ag_bruno = [
-                ag for ag in ag_filtrados if ag.get("profissional") == "Bruno"
-            ]
-            fat_bruno = sum(
-                PRECOS_SERVICOS.get(ag.get("servico", ""), 0.0)
-                for ag in ag_bruno
-            )
+            ag_bruno = [ag for ag in ag_filtrados if ag.get("profissional") == "Bruno"]
+            fat_bruno = sum(PRECOS_SERVICOS.get(ag.get("servico", ""), 0.0) for ag in ag_bruno)
 
-            ag_samuel = [
-                ag for ag in ag_filtrados if ag.get("profissional") == "Samuel"
-            ]
-            fat_samuel = sum(
-                PRECOS_SERVICOS.get(ag.get("servico", ""), 0.0)
-                for ag in ag_samuel
-            )
+            ag_samuel = [ag for ag in ag_filtrados if ag.get("profissional") == "Samuel"]
+            fat_samuel = sum(PRECOS_SERVICOS.get(ag.get("servico", ""), 0.0) for ag in ag_samuel)
 
             def contar_servicos(lista):
                 contagem = {}
@@ -855,18 +787,14 @@ with aba5:
                             "Telefone": ag.get("telefone"),
                             "Serviço": ag.get("servico"),
                             "Barbeiro": ag.get("profissional"),
-                            "Data/Hora": ag["data_hora"].strftime(
-                                "%d/%m/%Y às %H:%M"
-                            ),
+                            "Data/Hora": ag["data_hora"].strftime("%d/%m/%Y às %H:%M"),
                             "Valor": f"R$ {PRECOS_SERVICOS.get(ag.get('servico',''), 0.0):.2f}",
                         }
                     )
 
                 st.dataframe(tabela_dados, use_container_width=True)
             else:
-                st.info(
-                    "Nenhum agendamento encontrado para os filtros selecionados."
-                )
+                st.info("Nenhum agendamento encontrado para os filtros selecionados.")
 
     elif senha != "":
         st.error("Senha incorreta. Verifique e tente novamente.")
