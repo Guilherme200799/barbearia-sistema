@@ -81,7 +81,13 @@ def salvar_agendamento(cliente, telefone, servico, profissional, data_hora):
 
 def deletar_agendamento(ag_id):
     try:
-        supabase.table("agendamentos").delete().eq("id", ag_id).execute()
+        # Tenta int ou converte para string
+        try:
+            id_query = int(ag_id)
+        except (ValueError, TypeError):
+            id_query = str(ag_id)
+
+        supabase.table("agendamentos").delete().eq("id", id_query).execute()
         return True
     except Exception as e:
         st.error(f"Erro ao cancelar agendamento: {e}")
@@ -90,16 +96,15 @@ def deletar_agendamento(ag_id):
 
 def atualizar_agendamento(ag_id, nova_data_hora):
     try:
-        # 1. Garante que o formato de data/hora vá em ISO 8601 padrão Postgres/Supabase
+        # Formato ISO 8601 exigido pelo Supabase/PostgreSQL
         data_iso = nova_data_hora.strftime("%Y-%m-%dT%H:%M:%S")
 
-        # 2. Tenta converter o ID para INT caso a coluna no Supabase seja numérica
+        # Ajusta tipagem do ID (int vs uuid/string)
         try:
             id_query = int(ag_id)
         except (ValueError, TypeError):
             id_query = str(ag_id)
 
-        # 3. Executa a atualização
         resposta = (
             supabase.table("agendamentos")
             .update({"data_hora": data_iso})
@@ -107,15 +112,14 @@ def atualizar_agendamento(ag_id, nova_data_hora):
             .execute()
         )
 
-        # 4. Valida se o Supabase realmente alterou alguma linha
+        # Valida se o banco alterou a linha de fato
         if resposta.data and len(resposta.data) > 0:
             return True
         else:
-            st.error(f"Nenhum registro encontrado no banco com o ID {ag_id}.")
+            st.error(f"Não foi possível localizar o agendamento ID {ag_id} no banco.")
             return False
-
     except Exception as e:
-        st.error(f"Erro no Supabase ao remarcar: {e}")
+        st.error(f"Erro ao remarcar horário no banco de dados: {e}")
         return False
 
 
@@ -248,7 +252,7 @@ if "tel_busca" not in st.session_state:
     st.session_state.tel_busca = ""
 
 # ==============================================================================
-# ABA 1: AGENDAR
+# ABA 1: AGENDAR (PÁGINA INICIAL)
 # ==============================================================================
 with aba1:
     st.markdown(
@@ -429,7 +433,7 @@ with aba1:
                 )
 
 # ==============================================================================
-# ABA 2: REAGENDAMENTO (CORRIGIDA)
+# ABA 2: REAGENDAMENTO / AUTONOMIA DO CLIENTE
 # ==============================================================================
 with aba2:
     st.subheader("Área do Cliente: Meus Agendamentos")
@@ -484,6 +488,7 @@ with aba2:
                     with col_cli_del:
                         if st.button("❌ Cancelar este horário", key=f"cli_del_{ag_id}", use_container_width=True):
                             if deletar_agendamento(ag_id):
+                                st.cache_data.clear()
                                 st.success("Agendamento cancelado com sucesso!")
                                 time.sleep(0.8)
                                 st.rerun()
@@ -546,19 +551,15 @@ with aba2:
                                     st.warning("Nenhum horário vago nesta data.")
                                     nova_hora_str = None
 
-                            if nova_hora_str and st.button(
-    "Confirmar Alteração", key=f"btn_rem_{ag_id}", type="primary"
-):
-    h_p, m_p = map(int, nova_hora_str.split(":"))
-    nova_dt_comp = datetime.combine(nova_data, dt_time(h_p, m_p))
+                            if nova_hora_str and st.button("Confirmar Alteração", key=f"btn_rem_{ag_id}", type="primary"):
+                                h_p, m_p = map(int, nova_hora_str.split(":"))
+                                nova_dt_comp = datetime.combine(nova_data, dt_time(h_p, m_p))
 
-    if atualizar_agendamento(ag_id, nova_dt_comp):
-        # Limpa caches para garantir a leitura atualizada do banco
-        st.cache_data.clear()
-
-        st.success("Horário remarcado com sucesso no banco de dados!")
-        time.sleep(1)
-        st.rerun()
+                                if atualizar_agendamento(ag_id, nova_dt_comp):
+                                    st.cache_data.clear()
+                                    st.success("Horário remarcado com sucesso!")
+                                    time.sleep(1)
+                                    st.rerun()
         else:
             st.info("Nenhum agendamento futuro encontrado para este WhatsApp.")
 
@@ -650,6 +651,7 @@ with aba4:
             with col_btn:
                 if st.button("🗑️ Excluir", key=f"del_adm_{ag_id}", use_container_width=True):
                     if deletar_agendamento(ag_id):
+                        st.cache_data.clear()
                         st.success("Cancelado!")
                         time.sleep(0.5)
                         st.rerun()
