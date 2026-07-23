@@ -81,7 +81,6 @@ def salvar_agendamento(cliente, telefone, servico, profissional, data_hora):
 
 def deletar_agendamento(ag_id):
     try:
-        # Tenta int ou converte para string
         try:
             id_query = int(ag_id)
         except (ValueError, TypeError):
@@ -99,11 +98,8 @@ def atualizar_agendamento(ag_id, nova_data_hora):
         # Formato ISO 8601 exigido pelo Supabase/PostgreSQL
         data_iso = nova_data_hora.strftime("%Y-%m-%dT%H:%M:%S")
 
-        # Ajusta tipagem do ID (int vs uuid/string)
-        try:
-            id_query = int(ag_id)
-        except (ValueError, TypeError):
-            id_query = str(ag_id)
+        # 1ª Tentativa: convertendo para inteiro se for numérico
+        id_query = int(ag_id) if str(ag_id).isdigit() else ag_id
 
         resposta = (
             supabase.table("agendamentos")
@@ -112,12 +108,21 @@ def atualizar_agendamento(ag_id, nova_data_hora):
             .execute()
         )
 
-        # Valida se o banco alterou a linha de fato
+        # 2ª Tentativa: se não alterou linhas, tenta passar como String pura (ex: UUID/Text)
+        if not resposta.data or len(resposta.data) == 0:
+            resposta = (
+                supabase.table("agendamentos")
+                .update({"data_hora": data_iso})
+                .eq("id", str(ag_id))
+                .execute()
+            )
+
         if resposta.data and len(resposta.data) > 0:
             return True
         else:
-            st.error(f"Não foi possível localizar o agendamento ID {ag_id} no banco.")
+            st.error(f"Não foi possível localizar o agendamento ID {ag_id} no banco de dados.")
             return False
+
     except Exception as e:
         st.error(f"Erro ao remarcar horário no banco de dados: {e}")
         return False
@@ -463,7 +468,7 @@ with aba2:
         meus_agendamentos = [
             ag
             for ag in lista_agendamentos
-            if tel_limpo in ag.get("telefone", "")
+            if tel_limpo in str(ag.get("telefone", ""))
             and ag["data_hora"] >= (datetime.utcnow() - timedelta(hours=3))
         ]
 
@@ -529,7 +534,7 @@ with aba2:
                                     if nova_data == hoje_dt_rem.date() and h < hoje_dt_rem.time():
                                         continue
 
-                                    # Libera o próprio horário atual se for no mesmo dia/barbeiro
+                                    # Permite selecionar o próprio horário caso seja na mesma data/barbeiro
                                     if dt_v == ag["data_hora"]:
                                         hor_livres.append(h.strftime("%H:%M"))
                                         continue
