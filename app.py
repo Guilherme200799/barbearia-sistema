@@ -90,12 +90,32 @@ def deletar_agendamento(ag_id):
 
 def atualizar_agendamento(ag_id, nova_data_hora):
     try:
-        supabase.table("agendamentos").update(
-            {"data_hora": nova_data_hora.strftime("%Y-%m-%d %H:%M:%S")}
-        ).eq("id", ag_id).execute()
-        return True
+        # 1. Garante que o formato de data/hora vá em ISO 8601 padrão Postgres/Supabase
+        data_iso = nova_data_hora.strftime("%Y-%m-%dT%H:%M:%S")
+
+        # 2. Tenta converter o ID para INT caso a coluna no Supabase seja numérica
+        try:
+            id_query = int(ag_id)
+        except (ValueError, TypeError):
+            id_query = str(ag_id)
+
+        # 3. Executa a atualização
+        resposta = (
+            supabase.table("agendamentos")
+            .update({"data_hora": data_iso})
+            .eq("id", id_query)
+            .execute()
+        )
+
+        # 4. Valida se o Supabase realmente alterou alguma linha
+        if resposta.data and len(resposta.data) > 0:
+            return True
+        else:
+            st.error(f"Nenhum registro encontrado no banco com o ID {ag_id}.")
+            return False
+
     except Exception as e:
-        st.error(f"Erro ao remarcar horário: {e}")
+        st.error(f"Erro no Supabase ao remarcar: {e}")
         return False
 
 
