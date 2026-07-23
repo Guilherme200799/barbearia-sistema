@@ -239,8 +239,6 @@ with aba1:
         unsafe_allow_html=True,
     )
 
-    st.subheader("🗓️ Faça seu Agendamento")
-
 with aba1:
     st.subheader("Preencha os dados para agendar")
 
