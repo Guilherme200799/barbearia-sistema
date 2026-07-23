@@ -546,14 +546,19 @@ with aba2:
                                     st.warning("Nenhum horário vago nesta data.")
                                     nova_hora_str = None
 
-                            if nova_hora_str and st.button("Confirmar Alteração", key=f"btn_rem_{ag_id}", type="primary"):
-                                h_p, m_p = map(int, nova_hora_str.split(":"))
-                                nova_dt_comp = datetime.combine(nova_data, dt_time(h_p, m_p))
+                            if nova_hora_str and st.button(
+    "Confirmar Alteração", key=f"btn_rem_{ag_id}", type="primary"
+):
+    h_p, m_p = map(int, nova_hora_str.split(":"))
+    nova_dt_comp = datetime.combine(nova_data, dt_time(h_p, m_p))
 
-                                if atualizar_agendamento(ag_id, nova_dt_comp):
-                                    st.success("Horário remarcado com sucesso!")
-                                    time.sleep(0.8)
-                                    st.rerun()
+    if atualizar_agendamento(ag_id, nova_dt_comp):
+        # Limpa caches para garantir a leitura atualizada do banco
+        st.cache_data.clear()
+
+        st.success("Horário remarcado com sucesso no banco de dados!")
+        time.sleep(1)
+        st.rerun()
         else:
             st.info("Nenhum agendamento futuro encontrado para este WhatsApp.")
 
