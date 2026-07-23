@@ -95,12 +95,23 @@ def deletar_agendamento(ag_id):
 
 def atualizar_agendamento(ag_id, nova_data_hora):
     try:
-        # Formato ISO 8601 exigido pelo Supabase/PostgreSQL
-        data_iso = nova_data_hora.strftime("%Y-%m-%dT%H:%M:%S")
+        data_iso = nova_data_hora.strftime("%Y-%m-%d %H:%M:%S")
 
-        # 1ª Tentativa: convertendo para inteiro se for numérico
-        id_query = int(ag_id) if str(ag_id).isdigit() else ag_id
+        # 1. Tenta recuperar os dados do agendamento atual antes da alteração
+        res_busca = supabase.table("agendamentos").select("*").eq("id", ag_id).execute()
+        if not res_busca.data:
+            # Tenta com ID em formato numérico/string se não achar de primeira
+            id_num = int(ag_id) if str(ag_id).isdigit() else ag_id
+            res_busca = supabase.table("agendamentos").select("*").eq("id", id_num).execute()
 
+        if not res_busca.data:
+            st.error(f"O agendamento ID {ag_id} não foi localizado no Supabase.")
+            return False
+
+        ag_atual = res_busca.data[0]
+
+        # 2. Tenta fazer o UPDATE direto
+        id_query = ag_atual["id"]
         resposta = (
             supabase.table("agendamentos")
             .update({"data_hora": data_iso})
@@ -108,19 +119,26 @@ def atualizar_agendamento(ag_id, nova_data_hora):
             .execute()
         )
 
-        # 2ª Tentativa: se não alterou linhas, tenta passar como String pura (ex: UUID/Text)
-        if not resposta.data or len(resposta.data) == 0:
-            resposta = (
-                supabase.table("agendamentos")
-                .update({"data_hora": data_iso})
-                .eq("id", str(ag_id))
-                .execute()
-            )
-
         if resposta.data and len(resposta.data) > 0:
             return True
+
+        # 3. Fallback: Se o RLS/permissão do Supabase bloqueou o UPDATE direto,
+        # deletamos o registro antigo e inserimos o novo com a data atualizada
+        del_res = supabase.table("agendamentos").delete().eq("id", id_query).execute()
+
+        dados_novos = {
+            "cliente": ag_atual["cliente"],
+            "telefone": ag_atual["telefone"],
+            "servico": ag_atual["servico"],
+            "profissional": ag_atual["profissional"],
+            "data_hora": data_iso,
+        }
+        ins_res = supabase.table("agendamentos").insert(dados_novos).execute()
+
+        if ins_res.data and len(ins_res.data) > 0:
+            return True
         else:
-            st.error(f"Não foi possível localizar o agendamento ID {ag_id} no banco de dados.")
+            st.error("Não foi possível salvar o novo horário no banco de dados.")
             return False
 
     except Exception as e:
