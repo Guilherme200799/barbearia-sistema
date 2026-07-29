@@ -150,148 +150,152 @@ def atualizar_agendamento(ag_id, nova_data_hora):
 st.markdown(
     """
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Cinzel:wght@600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Oswald:wght@600;700&display=swap');
     
-    /* Fundo geral escuro e sofisticado */
+    /* Fundo limpo e claro */
     [data-testid="stAppViewContainer"] {
-        background-color: #111113 !important;
-        color: #f4f4f5 !important;
+        background-color: #f8fafc !important;
+        color: #0f172a !important;
         font-family: 'Plus Jakarta Sans', sans-serif !important;
     }
 
     [data-testid="stHeader"] {
-        background-color: transparent !important;
+        background-color: rgba(248, 250, 252, 0.9) !important;
     }
 
-    /* Oculta menus padrão Streamlit */
+    /* Oculta menus indesejados */
     #MainMenu, footer { visibility: hidden; }
 
-    /* Cabeçalho no estilo Barbershop Premium */
+    /* Cabeçalho estilo Barbearia Clean */
     .header-barber {
         text-align: center;
-        padding: 30px 20px 20px 20px;
-        margin-bottom: 25px;
-        background: radial-gradient(circle at top, #1c1c20 0%, #111113 100%);
-        border-bottom: 1px solid #27272a;
+        padding: 24px 16px;
+        margin-bottom: 24px;
+        background-color: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
     }
     .header-tag {
-        font-size: 0.72rem;
-        letter-spacing: 7px;
+        font-size: 0.75rem;
+        letter-spacing: 6px;
         font-weight: 700;
-        color: #d4af37;
+        color: #16a34a;
         text-transform: uppercase;
-        margin-bottom: 8px;
+        margin-bottom: 6px;
     }
     .header-title {
-        font-family: 'Cinzel', serif !important;
-        font-size: 2.5rem !important;
-        font-weight: 800 !important;
-        letter-spacing: 5px !important;
-        color: #ffffff !important;
+        font-family: 'Oswald', sans-serif !important;
+        font-size: 2.6rem !important;
+        font-weight: 700 !important;
+        letter-spacing: 3px !important;
+        color: #0f172a !important;
         margin: 0 !important;
         line-height: 1.1 !important;
         text-transform: uppercase;
     }
     .header-subtitle {
-        font-size: 0.78rem;
-        font-weight: 500;
-        color: #71717a;
-        margin-top: 10px;
-        letter-spacing: 3px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #64748b;
+        margin-top: 8px;
+        letter-spacing: 2px;
         text-transform: uppercase;
     }
 
-    /* Estilização das Abas */
+    /* ESTILIZAÇÃO DAS ABAS (Garantindo alta visibilidade e nitidez) */
     .stTabs [data-baseweb="tab-list"] {
         gap: 6px;
-        background-color: #18181b !important;
+        background-color: #e2e8f0 !important;
         padding: 6px;
         border-radius: 12px;
-        border: 1px solid #27272a !important;
+        border: 1px solid #cbd5e1 !important;
     }
+    
     .stTabs [data-baseweb="tab"] {
-        color: #a1a1aa !important;
+        color: #475569 !important;
         background-color: transparent !important;
         border-radius: 8px !important;
-        padding: 8px 14px !important;
+        padding: 10px 16px !important;
         font-size: 0.88rem !important;
-        font-weight: 600 !important;
+        font-weight: 700 !important;
         border: none !important;
         transition: all 0.2s ease;
     }
+    
+    /* Aba Selecionada: Destaque em Preto/Escuro com texto Branco */
     .stTabs [aria-selected="true"] {
         color: #ffffff !important;
-        background-color: #27272a !important;
-        box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.25) !important;
+        background-color: #0f172a !important;
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.12) !important;
     }
 
-    /* Cards e Caixas de Informação */
+    /* Cards Informativos com fundo branco limpo */
     .client-card {
-        background: #18181b !important;
-        border: 1px solid #27272a !important;
-        padding: 16px 20px;
+        background-color: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+        padding: 18px;
         border-radius: 12px;
-        margin-bottom: 15px;
-        color: #d4d4d8 !important;
+        margin-bottom: 16px;
+        color: #1e293b !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
     }
 
-    /* Inputs, Selects e Formuários */
+    /* Inputs e Selects */
     div[data-baseweb="input"] > div, 
     div[data-baseweb="select"] > div {
-        background-color: #18181b !important;
-        border: 1px solid #27272a !important;
-        color: #ffffff !important;
+        background-color: #ffffff !important;
+        border: 1px solid #cbd5e1 !important;
+        color: #0f172a !important;
         border-radius: 8px !important;
     }
 
     div[data-baseweb="input"] > div:focus-within, 
     div[data-baseweb="select"] > div:focus-within {
-        border-color: #d4af37 !important;
+        border-color: #0f172a !important;
     }
     
     input {
-        color: #ffffff !important;
+        color: #0f172a !important;
     }
     
     label {
-        color: #a1a1aa !important;
+        color: #334155 !important;
         font-size: 0.88rem !important;
-        font-weight: 600 !important;
+        font-weight: 700 !important;
     }
 
     /* Botões Secundários (Horários Livres) */
     button[kind="secondary"] {
-        background-color: #18181b !important;
-        color: #e4e4e7 !important;
-        border: 1px solid #27272a !important;
+        background-color: #ffffff !important;
+        color: #0f172a !important;
+        border: 1px solid #cbd5e1 !important;
         border-radius: 8px !important;
-        font-weight: 600 !important;
-        transition: all 0.2s ease !important;
+        font-weight: 700 !important;
+        transition: all 0.15s ease-in-out !important;
     }
     button[kind="secondary"]:hover {
-        border-color: #d4af37 !important;
-        color: #d4af37 !important;
-        background-color: #202024 !important;
+        border-color: #16a34a !important;
+        color: #16a34a !important;
+        background-color: #f0fdf4 !important;
     }
 
     /* Botões Primários e Horário Selecionado */
     button[kind="primary"] {
-        background: linear-gradient(135deg, #25a85c 0%, #1c8849 100%) !important;
+        background-color: #16a34a !important;
         color: #ffffff !important;
         border: none !important;
         border-radius: 8px !important;
         font-weight: 700 !important;
-        box-shadow: 0 4px 12px rgba(37, 168, 92, 0.25) !important;
-        transition: all 0.2s ease !important;
+        box-shadow: 0 4px 12px rgba(22, 163, 74, 0.25) !important;
     }
     button[kind="primary"]:hover {
-        background: linear-gradient(135deg, #1f9450 0%, #16703b 100%) !important;
-        box-shadow: 0 6px 16px rgba(37, 168, 92, 0.35) !important;
+        background-color: #15803d !important;
     }
 
-    /* Botão WhatsApp */
+    /* Botão estilo WhatsApp */
     .whatsapp-btn {
-        background-color: #25a85c !important;
+        background-color: #16a34a !important;
         color: #ffffff !important;
         padding: 12px 24px;
         border-radius: 8px;
@@ -299,11 +303,12 @@ st.markdown(
         text-decoration: none;
         font-size: 14px;
         display: inline-block;
-        box-shadow: 0 4px 14px rgba(37, 168, 92, 0.3);
+        box-shadow: 0 4px 12px rgba(22, 163, 74, 0.2);
     }
     </style>
 """,
     unsafe_allow_html=True,
+)
 )
 # --- CABEÇALHO ---
 st.markdown(
