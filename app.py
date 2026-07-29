@@ -150,160 +150,95 @@ def atualizar_agendamento(ag_id, nova_data_hora):
 st.markdown(
     """
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;900&family=Oswald:wght@500;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;900&display=swap');
     
-    /* Fundo escuro geral do App */
-    [data-testid="stAppViewContainer"] {
-        background-color: #0f0f10 !important;
-        color: #e0e0e0 !important;
+    html, body, [data-testid="stAppViewContainer"] {
         font-family: 'Montserrat', sans-serif !important;
     }
-
-    [data-testid="stHeader"] {
-        background-color: rgba(15, 15, 16, 0.8) !important;
-    }
-
-    /* Oculta menus indesejados do Streamlit */
-    #MainMenu, footer { visibility: hidden; }
-
-    /* Cabeçalho no estilo Barbershop */
+    
     .header-barber {
         text-align: center;
-        padding: 25px 15px;
+        padding: 20px 0 15px 0;
         margin-bottom: 25px;
-        background: linear-gradient(180deg, #18181b 0%, #0f0f10 100%);
-        border: 1px solid #27272a;
-        border-radius: 16px;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        border-bottom: 2px solid var(--text-color);
     }
     .header-tag {
-        font-size: 0.8rem;
-        letter-spacing: 6px;
+        font-size: 0.75rem;
+        letter-spacing: 5px;
         font-weight: 700;
-        color: #23a55a;
+        opacity: 0.6;
         text-transform: uppercase;
-        margin-bottom: 6px;
+        color: var(--text-color);
+        margin-bottom: 4px;
     }
     .header-title {
-        font-family: 'Oswald', sans-serif !important;
-        font-size: 2.8rem !important;
-        font-weight: 700 !important;
-        letter-spacing: 4px !important;
-        color: #ffffff !important;
+        font-family: 'Montserrat', sans-serif !important;
+        font-size: 2.3rem !important;
+        font-weight: 900 !important;
+        letter-spacing: 3px !important;
+        color: var(--text-color) !important;
         margin: 0 !important;
         line-height: 1.1 !important;
         text-transform: uppercase;
-        text-shadow: 0 2px 10px rgba(0,0,0,0.5);
     }
     .header-subtitle {
-        font-size: 0.82rem;
+        font-size: 0.8rem;
         font-weight: 600;
-        color: #a1a1aa;
-        margin-top: 10px;
-        letter-spacing: 3px;
+        color: var(--text-color);
+        opacity: 0.75;
+        margin-top: 8px;
+        letter-spacing: 2px;
         text-transform: uppercase;
     }
-
-    /* Estilização das Abas */
+    
     .stTabs [data-baseweb="tab-list"] {
-        gap: 8px;
-        background-color: #18181b !important;
-        padding: 8px;
-        border-radius: 12px;
-        border: 1px solid #27272a !important;
+        gap: 6px;
+        background-color: var(--secondary-background-color) !important;
+        padding: 6px;
+        border-radius: 10px;
+        border-bottom: none !important;
     }
     .stTabs [data-baseweb="tab"] {
-        color: #a1a1aa !important;
+        color: var(--text-color) !important;
+        opacity: 0.7;
         background-color: transparent !important;
-        border-radius: 8px !important;
-        padding: 10px 16px !important;
+        border-radius: 6px;
+        padding: 8px 14px;
         font-weight: 700 !important;
-        border: none !important;
-        transition: all 0.2s ease;
     }
     .stTabs [aria-selected="true"] {
-        color: #ffffff !important;
-        background-color: #27272a !important;
-        box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.3) !important;
+        opacity: 1 !important;
+        background-color: var(--background-color) !important;
+        box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1) !important;
+        border-radius: 6px !important;
     }
-
-    /* Cards Informativos e do Cliente */
+    
     .client-card {
-        background-color: #18181b !important;
-        border: 1px solid #27272a !important;
-        padding: 18px;
-        border-radius: 12px;
-        margin-bottom: 15px;
-        color: #e4e4e7 !important;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    }
-
-    /* Customização dos Inputs e Selects */
-    div[data-baseweb="input"] > div, 
-    div[data-baseweb="select"] > div {
-        background-color: #18181b !important;
-        border: 1px solid #3f3f46 !important;
-        color: #ffffff !important;
-        border-radius: 8px !important;
+        background-color: var(--secondary-background-color) !important;
+        border: 1px solid rgba(128, 128, 128, 0.2) !important;
+        padding: 16px;
+        border-radius: 10px;
+        margin-bottom: 10px;
     }
     
-    input {
-        color: #ffffff !important;
-    }
-    
-    label {
-        color: #e4e4e7 !important;
-        font-weight: 600 !important;
-    }
-
-    /* Botões Secundários (Horários Livres) */
-    button[kind="secondary"] {
-        background-color: #18181b !important;
-        color: #f4f4f5 !important;
-        border: 1px solid #3f3f46 !important;
-        border-radius: 8px !important;
-        font-weight: 600 !important;
-        transition: all 0.2s ease-in-out !important;
-    }
-    button[kind="secondary"]:hover {
-        border-color: #23a55a !important;
-        color: #23a55a !important;
-        background-color: #27272a !important;
-        transform: translateY(-1px);
-    }
-
-    /* Botões Primários (Confirmar / Selecionado) */
-    button[kind="primary"] {
-        background-color: #23a55a !important;
-        color: #ffffff !important;
-        border: none !important;
-        border-radius: 8px !important;
-        font-weight: 700 !important;
-        box-shadow: 0 4px 14px rgba(35, 165, 90, 0.3) !important;
-        transition: all 0.2s ease-in-out !important;
-    }
-    button[kind="primary"]:hover {
-        background-color: #1f924f !important;
-        transform: translateY(-1px);
-        box-shadow: 0 6px 18px rgba(35, 165, 90, 0.4) !important;
-    }
-
-    /* Botão estilo WhatsApp */
     .whatsapp-btn {
         background-color: #23a55a !important;
         color: #ffffff !important;
-        padding: 12px 24px;
-        border-radius: 8px;
+        padding: 10px 20px;
+        border-radius: 6px;
         font-weight: 700;
         text-decoration: none;
-        font-size: 15px;
+        font-size: 14px;
         display: inline-block;
-        box-shadow: 0 4px 14px rgba(35, 165, 90, 0.3);
-        transition: all 0.2s;
     }
-    .whatsapp-btn:hover {
+
+    button[kind="primary"] {
+        background-color: #23a55a !important;
+        color: white !important;
+        border: none !important;
+    }
+    button[kind="primary"]:hover {
         background-color: #1f924f !important;
-        transform: translateY(-1px);
     }
     </style>
 """,
