@@ -97,10 +97,9 @@ def atualizar_agendamento(ag_id, nova_data_hora):
     try:
         data_iso = nova_data_hora.strftime("%Y-%m-%d %H:%M:%S")
 
-        # 1. Tenta recuperar os dados do agendamento atual antes da alteração
+        # 1. Busca os dados atuais
         res_busca = supabase.table("agendamentos").select("*").eq("id", ag_id).execute()
         if not res_busca.data:
-            # Tenta com ID em formato numérico/string se não achar de primeira
             id_num = int(ag_id) if str(ag_id).isdigit() else ag_id
             res_busca = supabase.table("agendamentos").select("*").eq("id", id_num).execute()
 
@@ -109,9 +108,9 @@ def atualizar_agendamento(ag_id, nova_data_hora):
             return False
 
         ag_atual = res_busca.data[0]
-
-        # 2. Tenta fazer o UPDATE direto
         id_query = ag_atual["id"]
+
+        # 2. Tenta Update Direto
         resposta = (
             supabase.table("agendamentos")
             .update({"data_hora": data_iso})
@@ -122,9 +121,8 @@ def atualizar_agendamento(ag_id, nova_data_hora):
         if resposta.data and len(resposta.data) > 0:
             return True
 
-        # 3. Fallback: Se o RLS/permissão do Supabase bloqueou o UPDATE direto,
-        # deletamos o registro antigo e inserimos o novo com a data atualizada
-        del_res = supabase.table("agendamentos").delete().eq("id", id_query).execute()
+        # 3. Fallback: Delete + Insert caso RLS bloqueie update
+        supabase.table("agendamentos").delete().eq("id", id_query).execute()
 
         dados_novos = {
             "cliente": ag_atual["cliente"],
@@ -152,7 +150,6 @@ st.markdown(
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Oswald:wght@600;700&display=swap');
     
-    /* Fundo limpo e claro */
     [data-testid="stAppViewContainer"] {
         background-color: #f8fafc !important;
         color: #0f172a !important;
@@ -163,10 +160,8 @@ st.markdown(
         background-color: rgba(248, 250, 252, 0.9) !important;
     }
 
-    /* Oculta menus indesejados */
     #MainMenu, footer { visibility: hidden; }
 
-    /* Cabeçalho estilo Barbearia Clean */
     .header-barber {
         text-align: center;
         padding: 24px 16px;
@@ -203,7 +198,7 @@ st.markdown(
         text-transform: uppercase;
     }
 
-    /* ESTILIZAÇÃO DAS ABAS (Garantindo alta visibilidade e nitidez) */
+    /* ESTILIZAÇÃO DAS ABAS */
     .stTabs [data-baseweb="tab-list"] {
         gap: 6px;
         background-color: #e2e8f0 !important;
@@ -223,14 +218,12 @@ st.markdown(
         transition: all 0.2s ease;
     }
     
-    /* Aba Selecionada: Destaque em Preto/Escuro com texto Branco */
     .stTabs [aria-selected="true"] {
         color: #ffffff !important;
         background-color: #0f172a !important;
         box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.12) !important;
     }
 
-    /* Cards Informativos com fundo branco limpo */
     .client-card {
         background-color: #ffffff !important;
         border: 1px solid #e2e8f0 !important;
@@ -241,7 +234,6 @@ st.markdown(
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
     }
 
-    /* Inputs e Selects */
     div[data-baseweb="input"] > div, 
     div[data-baseweb="select"] > div {
         background-color: #ffffff !important;
@@ -265,7 +257,6 @@ st.markdown(
         font-weight: 700 !important;
     }
 
-    /* Botões Secundários (Horários Livres) */
     button[kind="secondary"] {
         background-color: #ffffff !important;
         color: #0f172a !important;
@@ -280,7 +271,6 @@ st.markdown(
         background-color: #f0fdf4 !important;
     }
 
-    /* Botões Primários e Horário Selecionado */
     button[kind="primary"] {
         background-color: #16a34a !important;
         color: #ffffff !important;
@@ -293,7 +283,6 @@ st.markdown(
         background-color: #15803d !important;
     }
 
-    /* Botão estilo WhatsApp */
     .whatsapp-btn {
         background-color: #16a34a !important;
         color: #ffffff !important;
@@ -309,7 +298,7 @@ st.markdown(
 """,
     unsafe_allow_html=True,
 )
-)
+
 # --- CABEÇALHO ---
 st.markdown(
     """
@@ -349,8 +338,8 @@ with aba1:
             <p style="margin: 0 0 5px 0;">📍 <b>Endereço:</b> R. dos Toureiros, 62 - Juliana</p>
             <p style="margin: 0;">
                 📞 <b>Contatos para Dúvidas:</b> 
-                Bruno: <a href="https://wa.me/5531985271355" target="_blank" style="color: #23a55a; font-weight: bold; text-decoration: none;">(31) 98527-1355</a> | 
-                Samuel: <a href="https://wa.me/5531985271355" target="_blank" style="color: #23a55a; font-weight: bold; text-decoration: none;">(31) 98527-1355</a>
+                Bruno: <a href="https://wa.me/5531985271355" target="_blank" style="color: #16a34a; font-weight: bold; text-decoration: none;">(31) 98527-1355</a> | 
+                Samuel: <a href="https://wa.me/5531985271355" target="_blank" style="color: #16a34a; font-weight: bold; text-decoration: none;">(31) 98527-1355</a>
             </p>
         </div>
         """,
@@ -510,8 +499,8 @@ with aba1:
 
                 st.markdown(
                     f"""
-                <div style="background-color: var(--secondary-background-color); border: 2px solid #23a55a; padding: 20px; border-radius: 10px; text-align: center; margin-top: 15px; margin-bottom: 20px;">
-                    <h4 style="margin: 0 0 8px 0; color: var(--text-color);">Quase lá! Notifique o barbeiro:</h4>
+                <div style="background-color: #ffffff; border: 2px solid #16a34a; padding: 20px; border-radius: 10px; text-align: center; margin-top: 15px; margin-bottom: 20px;">
+                    <h4 style="margin: 0 0 8px 0; color: #0f172a;">Quase lá! Notifique o barbeiro:</h4>
                     <a href="{link_wa}" target="_blank" class="whatsapp-btn">
                         📲 Enviar confirmação no WhatsApp
                     </a>
@@ -617,7 +606,6 @@ with aba2:
                                     if nova_data == hoje_dt_rem.date() and h < hoje_dt_rem.time():
                                         continue
 
-                                    # Permite selecionar o próprio horário caso seja na mesma data/barbeiro
                                     if dt_v == ag["data_hora"]:
                                         hor_livres.append(h.strftime("%H:%M"))
                                         continue
@@ -685,7 +673,7 @@ with aba3:
                 hora_str = ag["data_hora"].strftime("%H:%M")
                 st.markdown(
                     f"""
-                <div class="client-card" style="border-left: 4px solid #23a55a !important;">
+                <div class="client-card" style="border-left: 4px solid #16a34a !important;">
                     <b>{ag['cliente']}</b> • {ag['servico']}<br>
                     <small>⏰ <b>{hora_str}</b> | 📱 {ag.get('telefone','')}</small>
                 </div>
@@ -705,7 +693,7 @@ with aba3:
                 hora_str = ag["data_hora"].strftime("%H:%M")
                 st.markdown(
                     f"""
-                <div class="client-card" style="border-left: 4px solid #23a55a !important;">
+                <div class="client-card" style="border-left: 4px solid #16a34a !important;">
                     <b>{ag['cliente']}</b> • {ag['servico']}<br>
                     <small>⏰ <b>{hora_str}</b> | 📱 {ag.get('telefone','')}</small>
                 </div>
@@ -862,7 +850,7 @@ with aba5:
             with col_b1:
                 st.markdown(
                     f"""
-                <div class="client-card" style="border-left: 4px solid #23a55a !important;">
+                <div class="client-card" style="border-left: 4px solid #16a34a !important;">
                     <h4 style="margin:0;">🧔 Bruno</h4>
                     <p style="margin:5px 0 0 0;"><b>Total Atendimentos:</b> {len(ag_bruno)}</p>
                     <p style="margin:0 0 10px 0;"><b>Faturamento:</b> R$ {fat_bruno:.2f}</p>
@@ -877,7 +865,7 @@ with aba5:
             with col_b2:
                 st.markdown(
                     f"""
-                <div class="client-card" style="border-left: 4px solid #23a55a !important;">
+                <div class="client-card" style="border-left: 4px solid #16a34a !important;">
                     <h4 style="margin:0;">🧔 Samuel</h4>
                     <p style="margin:5px 0 0 0;"><b>Total Atendimentos:</b> {len(ag_samuel)}</p>
                     <p style="margin:0 0 10px 0;"><b>Faturamento:</b> R$ {fat_samuel:.2f}</p>
