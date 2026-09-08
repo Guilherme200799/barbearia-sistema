@@ -344,27 +344,36 @@ with aba1:
         minutos_inicio = 480
         minutos_fim = 1020 if dia_semana_selecionado == 5 else 1080
 
-        horarios_todos = []
-        minutos_atual = minutos_inicio
-        while minutos_atual <= minutos_fim:
-            h_print = minutos_atual // 60
+       horarios_todos = []
+dia_semana = data_atendimento.weekday()
+
+minutos_atual = minutos_inicio
+while minutos_atual <= minutos_fim:
+    h_print = minutos_atual // 60
     m_print = minutos_atual % 60
     horario_temp = dt_time(h_print, m_print)
 
-    # Bloqueia o almoço (12:00 às 13:59) de Segunda a Sexta (dia_semana_selecionado < 5)
-    eh_diasemana = dia_semana_selecionado < 5
-    eh_almoco = dt_time(12, 0) <= horario_temp < dt_time(14, 0)
+    # Segunda a Sexta (0 a 4): ignora horários das 12:00 até 13:59
+    eh_diasemana = dia_semana < 5
+    eh_almoco = (h_print == 12) or (h_print == 13)
 
     if not (eh_diasemana and eh_almoco):
         horarios_todos.append(horario_temp)
 
     minutos_atual += 40
 
-    horarios_disponiveis = []
-    for h in horarios_todos:
-            dt_verificar = datetime.combine(data_atendimento, h)
-            if data_atendimento == hoje_dt.date() and h < hoje_dt.time():
-                continue
+horarios_disponiveis = []
+for h in horarios_todos:
+    dt_verificar = datetime.combine(data_atendimento, h)
+    if data_atendimento == hoje_dt.date() and h < hoje_dt.time():
+        continue
+
+    ocupado = any(
+        ag["profissional"] == profissional and ag["data_hora"] == dt_verificar
+        for ag in lista_agendamentos
+    )
+    if not ocupado:
+        horarios_disponiveis.append(h)
 
             ocupado = any(
                 ag["profissional"] == profissional
