@@ -348,12 +348,20 @@ with aba1:
         minutos_atual = minutos_inicio
         while minutos_atual <= minutos_fim:
             h_print = minutos_atual // 60
-            m_print = minutos_atual % 60
-            horarios_todos.append(dt_time(h_print, m_print))
-            minutos_atual += 40
+    m_print = minutos_atual % 60
+    horario_temp = dt_time(h_print, m_print)
 
-        horarios_disponiveis = []
-        for h in horarios_todos:
+    # Bloqueia o almoço (12:00 às 13:59) de Segunda a Sexta (dia_semana_selecionado < 5)
+    eh_diasemana = dia_semana_selecionado < 5
+    eh_almoco = dt_time(12, 0) <= horario_temp < dt_time(14, 0)
+
+    if not (eh_diasemana and eh_almoco):
+        horarios_todos.append(horario_temp)
+
+    minutos_atual += 40
+
+    horarios_disponiveis = []
+    for h in horarios_todos:
             dt_verificar = datetime.combine(data_atendimento, h)
             if data_atendimento == hoje_dt.date() and h < hoje_dt.time():
                 continue
