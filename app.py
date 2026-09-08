@@ -344,7 +344,7 @@ with aba1:
         minutos_inicio = 480
         minutos_fim = 1020 if dia_semana_selecionado == 5 else 1080
 
-       horarios_todos = []
+    horarios_todos = []
 dia_semana = data_atendimento.weekday()
 
 minutos_atual = minutos_inicio
@@ -375,12 +375,12 @@ for h in horarios_todos:
     if not ocupado:
         horarios_disponiveis.append(h)
 
-            ocupado = any(
+        ocupado = any(
                 ag["profissional"] == profissional
                 and ag["data_hora"] == dt_verificar
                 for ag in lista_agendamentos
             )
-            if not ocupado:
+    if not ocupado:
                 horarios_disponiveis.append(h)
 
     st.write("---")
