@@ -34,8 +34,9 @@ except Exception as e:
 PRECOS_SERVICOS = {
     "Cabelo": 30.0,
     "Barba": 25.0,
-    "Sobrancelha + Barba": 35.0,
     "Combo (Cabelo + Barba)": 55.0,
+    "Sobrancelha + Barba": 35.0,
+    "Cabelo + Sobrancelha": 35.0,
     "Sobrancelha": 10.0,
 }
 
