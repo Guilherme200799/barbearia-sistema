@@ -99,8 +99,10 @@ def atualizar_agendamento(ag_id, nova_data_hora):
     try:
         data_iso = nova_data_hora.strftime("%Y-%m-%d %H:%M:%S")
 
+        # 1. Tenta recuperar os dados do agendamento atual antes da alteração
         res_busca = supabase.table("agendamentos").select("*").eq("id", ag_id).execute()
         if not res_busca.data:
+            # Tenta com ID em formato numérico/string se não achar de primeira
             id_num = int(ag_id) if str(ag_id).isdigit() else ag_id
             res_busca = supabase.table("agendamentos").select("*").eq("id", id_num).execute()
 
@@ -109,6 +111,8 @@ def atualizar_agendamento(ag_id, nova_data_hora):
             return False
 
         ag_atual = res_busca.data[0]
+
+        # 2. Tenta fazer o UPDATE direto
         id_query = ag_atual["id"]
         resposta = (
             supabase.table("agendamentos")
@@ -120,6 +124,8 @@ def atualizar_agendamento(ag_id, nova_data_hora):
         if resposta.data and len(resposta.data) > 0:
             return True
 
+        # 3. Fallback: Se o RLS/permissão do Supabase bloqueou o UPDATE direto,
+        # deletamos o registro antigo e inserimos o novo com a data atualizada
         del_res = supabase.table("agendamentos").delete().eq("id", id_query).execute()
 
         dados_novos = {
@@ -142,138 +148,99 @@ def atualizar_agendamento(ag_id, nova_data_hora):
         return False
 
 
-# --- ESTILOS CSS PERSONALIZADOS (DARK MINIMALIST CLEAN) ---
+# --- ESTILOS CSS PERSONALIZADOS ---
 st.markdown(
     """
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;900&display=swap');
     
-    /* Fundo Escuro Minimalista */
-    html, body, [data-testid="stAppViewContainer"], [data-testid="stHeader"] {
-        background-color: #121214 !important;
-        color: #E1E1E6 !important;
-        font-family: 'Inter', sans-serif !important;
+    html, body, [data-testid="stAppViewContainer"] {
+        font-family: 'Montserrat', sans-serif !important;
     }
     
-    [data-testid="stMainBlockContainer"] {
-        padding-top: 2rem !important;
-        max-width: 720px !important;
-    }
-    
-    /* Header Clean */
     .header-barber {
         text-align: center;
-        padding: 20px 10px 10px 10px;
-        margin-bottom: 20px;
+        padding: 20px 0 15px 0;
+        margin-bottom: 25px;
+        border-bottom: 2px solid var(--text-color);
     }
     .header-tag {
         font-size: 0.75rem;
-        letter-spacing: 3px;
-        font-weight: 600;
-        color: #D4A373;
+        letter-spacing: 5px;
+        font-weight: 700;
+        opacity: 0.6;
         text-transform: uppercase;
+        color: var(--text-color);
         margin-bottom: 4px;
     }
     .header-title {
-        font-size: 2.2rem !important;
-        font-weight: 800 !important;
-        letter-spacing: -0.5px !important;
-        color: #FFFFFF !important;
+        font-family: 'Montserrat', sans-serif !important;
+        font-size: 2.3rem !important;
+        font-weight: 900 !important;
+        letter-spacing: 3px !important;
+        color: var(--text-color) !important;
         margin: 0 !important;
+        line-height: 1.1 !important;
+        text-transform: uppercase;
     }
     .header-subtitle {
-        font-size: 0.85rem;
-        color: #A8A8B3;
-        margin-top: 6px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--text-color);
+        opacity: 0.75;
+        margin-top: 8px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
     }
     
-    /* Abas Navegação */
     .stTabs [data-baseweb="tab-list"] {
         gap: 6px;
-        background-color: #1E1E22 !important;
+        background-color: var(--secondary-background-color) !important;
         padding: 6px;
         border-radius: 10px;
-        border: 1px solid #29292E !important;
+        border-bottom: none !important;
     }
     .stTabs [data-baseweb="tab"] {
-        color: #A8A8B3 !important;
+        color: var(--text-color) !important;
+        opacity: 0.7;
         background-color: transparent !important;
         border-radius: 6px;
         padding: 8px 14px;
-        font-weight: 500 !important;
-        border: none !important;
-        font-size: 0.85rem;
+        font-weight: 700 !important;
     }
     .stTabs [aria-selected="true"] {
-        color: #121214 !important;
-        background-color: #E2B068 !important;
-        font-weight: 600 !important;
+        opacity: 1 !important;
+        background-color: var(--background-color) !important;
+        box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1) !important;
         border-radius: 6px !important;
     }
     
-    /* Cards Clean */
     .client-card {
-        background-color: #1E1E22 !important;
-        border: 1px solid #29292E !important;
+        background-color: var(--secondary-background-color) !important;
+        border: 1px solid rgba(128, 128, 128, 0.2) !important;
         padding: 16px;
         border-radius: 10px;
-        margin-bottom: 12px;
+        margin-bottom: 10px;
     }
     
-    /* Inputs */
-    .stTextInput>div>div>input, .stSelectbox>div>div, div[data-baseweb="select"]>div {
-        background-color: #1E1E22 !important;
-        color: #FFFFFF !important;
-        border: 1px solid #29292E !important;
-        border-radius: 8px !important;
-    }
-    .stTextInput>div>div>input:focus {
-        border-color: #E2B068 !important;
-        box-shadow: none !important;
-    }
-
-    /* Botões Principais */
-    button[kind="primary"] {
-        background-color: #E2B068 !important;
-        color: #121214 !important;
-        font-weight: 600 !important;
-        border: none !important;
-        border-radius: 8px !important;
-        padding: 10px 16px !important;
-    }
-    button[kind="primary"]:hover {
-        background-color: #D4A373 !important;
-    }
-
-    /* Botões Secundários (Chips de Horário) */
-    button[kind="secondary"] {
-        background-color: #1E1E22 !important;
-        color: #E1E1E6 !important;
-        border: 1px solid #29292E !important;
-        border-radius: 8px !important;
-    }
-    button[kind="secondary"]:hover {
-        border-color: #E2B068 !important;
-        color: #E2B068 !important;
-    }
-
-    /* WhatsApp Button */
     .whatsapp-btn {
-        background-color: #25D366 !important;
-        color: #000000 !important;
+        background-color: #23a55a !important;
+        color: #ffffff !important;
         padding: 10px 20px;
-        border-radius: 8px;
-        font-weight: 600;
+        border-radius: 6px;
+        font-weight: 700;
         text-decoration: none;
-        font-size: 0.9rem;
+        font-size: 14px;
         display: inline-block;
     }
-    
-    label, p, span, div {
-        color: #E1E1E6 !important;
+
+    button[kind="primary"] {
+        background-color: #23a55a !important;
+        color: white !important;
+        border: none !important;
     }
-    hr {
-        border-color: #29292E !important;
+    button[kind="primary"]:hover {
+        background-color: #1f924f !important;
     }
     </style>
 """,
@@ -284,9 +251,9 @@ st.markdown(
 st.markdown(
     """
     <div class="header-barber">
-        <div class="header-tag">Barbearia</div>
-        <h1 class="header-title">Preto & Branco</h1>
-        <div class="header-subtitle">Agendamento Online</div>
+        <div class="header-tag">•💈BARBEARIA💈•</div>
+        <h1 class="header-title">• Preto & Branco •</h1>
+        <div class="header-subtitle">Agendamento Online & Gestão Integrada</div>
     </div>
 """,
     unsafe_allow_html=True,
@@ -315,19 +282,19 @@ if "tel_busca" not in st.session_state:
 with aba1:
     st.markdown(
         """
-        <div class="client-card" style="margin-bottom: 20px;">
-            <p style="margin: 0 0 6px 0;">📍 <b>Endereço:</b> R. dos Toureiros, 62 - Juliana</p>
+        <div class="client-card" style="margin-bottom: 25px;">
+            <p style="margin: 0 0 5px 0;">📍 <b>Endereço:</b> R. dos Toureiros, 62 - Juliana</p>
             <p style="margin: 0;">
-                📞 <b>Contatos:</b> 
-                Bruno: <a href="https://wa.me/5531985271355" target="_blank" style="color: #E2B068; font-weight: 600; text-decoration: none;">(31) 98527-1355</a> | 
-                Samuel: <a href="https://wa.me/5531985271355" target="_blank" style="color: #E2B068; font-weight: 600; text-decoration: none;">(31) 98527-1355</a>
+                📞 <b>Contatos para Dúvidas:</b> 
+                Bruno: <a href="https://wa.me/5531985271355" target="_blank" style="color: #23a55a; font-weight: bold; text-decoration: none;">(31) 98527-1355</a> | 
+                Samuel: <a href="https://wa.me/5531985271355" target="_blank" style="color: #23a55a; font-weight: bold; text-decoration: none;">(31) 98527-1355</a>
             </p>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
-    st.subheader("Preencha seus dados")
+    st.subheader("Preencha os dados para agendar")
 
     lista_agendamentos = carregar_agendamentos()
 
@@ -372,26 +339,19 @@ with aba1:
     )
 
     if data_atendimento.weekday() == 6:
-        st.warning("⚠️ A barbearia não abre aos domingos. Escolha outra data.")
+        st.warning("⚠️ A barbearia não abre aos domingos. Por favor, escolha outra data.")
         horarios_disponiveis = []
     else:
-        dia_semana = data_atendimento.weekday()
+        dia_semana_selecionado = data_atendimento.weekday()
         minutos_inicio = 480
-        minutos_fim = 1020 if dia_semana == 5 else 1080
+        minutos_fim = 1020 if dia_semana_selecionado == 5 else 1080
 
         horarios_todos = []
         minutos_atual = minutos_inicio
         while minutos_atual <= minutos_fim:
             h_print = minutos_atual // 60
             m_print = minutos_atual % 60
-            horario_temp = dt_time(h_print, m_print)
-
-            eh_diasemana = dia_semana < 5
-            eh_almoco = (h_print == 12) or (h_print == 13)
-
-            if not (eh_diasemana and eh_almoco):
-                horarios_todos.append(horario_temp)
-
+            horarios_todos.append(dt_time(h_print, m_print))
             minutos_atual += 40
 
         horarios_disponiveis = []
@@ -401,14 +361,15 @@ with aba1:
                 continue
 
             ocupado = any(
-                ag["profissional"] == profissional and ag["data_hora"] == dt_verificar
+                ag["profissional"] == profissional
+                and ag["data_hora"] == dt_verificar
                 for ag in lista_agendamentos
             )
             if not ocupado:
                 horarios_disponiveis.append(h)
 
     st.write("---")
-    st.markdown("### ⏰ Selecione um Horário:")
+    st.markdown("### ⏰ Selecione um Horário Disponível:")
 
     if data_atendimento.weekday() != 6:
         if horarios_disponiveis:
@@ -486,8 +447,8 @@ with aba1:
 
                 st.markdown(
                     f"""
-                <div style="background-color: #1E1E22; border: 1px solid #29292E; padding: 20px; border-radius: 10px; text-align: center; margin-top: 15px; margin-bottom: 20px;">
-                    <h4 style="margin: 0 0 10px 0; color: #E2B068;">Notifique o barbeiro:</h4>
+                <div style="background-color: var(--secondary-background-color); border: 2px solid #23a55a; padding: 20px; border-radius: 10px; text-align: center; margin-top: 15px; margin-bottom: 20px;">
+                    <h4 style="margin: 0 0 8px 0; color: var(--text-color);">Quase lá! Notifique o barbeiro:</h4>
                     <a href="{link_wa}" target="_blank" class="whatsapp-btn">
                         📲 Enviar confirmação no WhatsApp
                     </a>
@@ -500,8 +461,8 @@ with aba1:
 # ABA 2: REAGENDAMENTO / AUTONOMIA DO CLIENTE
 # ==============================================================================
 with aba2:
-    st.subheader("Meus Agendamentos")
-    st.write("Digite seu WhatsApp para ver, remarcar ou cancelar seus horários.")
+    st.subheader("Área do Cliente: Meus Agendamentos")
+    st.write("Digite seu número de WhatsApp para ver, remarcar ou cancelar seus horários.")
 
     col_input, col_btn = st.columns([3, 1], vertical_alignment="bottom")
 
@@ -550,7 +511,7 @@ with aba2:
                     col_cli_rem, col_cli_del = st.columns(2)
 
                     with col_cli_del:
-                        if st.button("❌ Cancelar horário", key=f"cli_del_{ag_id}", use_container_width=True):
+                        if st.button("❌ Cancelar este horário", key=f"cli_del_{ag_id}", use_container_width=True):
                             if deletar_agendamento(ag_id):
                                 st.cache_data.clear()
                                 st.success("Agendamento cancelado com sucesso!")
@@ -558,7 +519,7 @@ with aba2:
                                 st.rerun()
 
                     with col_cli_rem:
-                        with st.popover("🔄 Remarcar horário", use_container_width=True):
+                        with st.popover("🔄 Remarcar data/horário", use_container_width=True):
                             st.write("**Escolha a nova data e horário:**")
 
                             hoje_dt_rem = datetime.utcnow() - timedelta(hours=3)
@@ -593,6 +554,7 @@ with aba2:
                                     if nova_data == hoje_dt_rem.date() and h < hoje_dt_rem.time():
                                         continue
 
+                                    # Permite selecionar o próprio horário caso seja na mesma data/barbeiro
                                     if dt_v == ag["data_hora"]:
                                         hor_livres.append(h.strftime("%H:%M"))
                                         continue
@@ -630,7 +592,7 @@ with aba2:
 # ABA 3: HORÁRIOS MARCADOS (AGENDA BARBEIRO)
 # ==============================================================================
 with aba3:
-    st.subheader("Consultar Agenda")
+    st.subheader("Consultar Agenda dos Barbeiros")
     lista_agendamentos = carregar_agendamentos()
 
     hoje_dt = datetime.utcnow() - timedelta(hours=3)
@@ -660,15 +622,15 @@ with aba3:
                 hora_str = ag["data_hora"].strftime("%H:%M")
                 st.markdown(
                     f"""
-                <div class="client-card">
+                <div class="client-card" style="border-left: 4px solid #23a55a !important;">
                     <b>{ag['cliente']}</b> • {ag['servico']}<br>
-                    <small style="color: #A8A8B3;">⏰ <b>{hora_str}</b> | 📱 {ag.get('telefone','')}</small>
+                    <small>⏰ <b>{hora_str}</b> | 📱 {ag.get('telefone','')}</small>
                 </div>
                 """,
                     unsafe_allow_html=True,
                 )
         else:
-            st.info("Nenhum agendamento nesta data.")
+            st.info("Nenhum agendamento para o Bruno nesta data.")
 
     with col_samuel:
         st.markdown("### 🧔 Samuel")
@@ -680,15 +642,15 @@ with aba3:
                 hora_str = ag["data_hora"].strftime("%H:%M")
                 st.markdown(
                     f"""
-                <div class="client-card">
+                <div class="client-card" style="border-left: 4px solid #23a55a !important;">
                     <b>{ag['cliente']}</b> • {ag['servico']}<br>
-                    <small style="color: #A8A8B3;">⏰ <b>{hora_str}</b> | 📱 {ag.get('telefone','')}</small>
+                    <small>⏰ <b>{hora_str}</b> | 📱 {ag.get('telefone','')}</small>
                 </div>
                 """,
                     unsafe_allow_html=True,
                 )
         else:
-            st.info("Nenhum agendamento nesta data.")
+            st.info("Nenhum agendamento para o Samuel nesta data.")
 
 # ==============================================================================
 # ABA 4: CANCELAR HORÁRIO (ADMINISTRATIVO / GERAL)
@@ -708,7 +670,7 @@ with aba4:
             col_info, col_btn = st.columns([3, 1])
             with col_info:
                 st.markdown(
-                    f"**{ag['cliente']}** - {ag['servico']} ({ag['profissional']})<br><small style='color:#A8A8B3;'>📅 {data_str} às {hora_str}</small>",
+                    f"**{ag['cliente']}** - {ag['servico']} ({ag['profissional']})<br><small>📅 {data_str} às {hora_str}</small>",
                     unsafe_allow_html=True,
                 )
             with col_btn:
@@ -724,7 +686,7 @@ with aba4:
 # ABA 5: PAINEL ADMINISTRATIVO
 # ==============================================================================
 with aba5:
-    st.subheader("🔒 Gestão Administrativa")
+    st.subheader("🔒 Acesso Restrito - Gestão da Barbearia")
 
     with st.form(key="form_login_admin"):
         col_pass, col_btn_login = st.columns([3, 1], vertical_alignment="bottom")
@@ -734,7 +696,7 @@ with aba5:
             btn_login = st.form_submit_button("🔓 Entrar", type="primary", use_container_width=True)
 
     if senha == "admin123":
-        st.success("Painel Autenticado")
+        st.success("Painel do Administrador Autenticado")
         st.write("---")
 
         lista_agendamentos = carregar_agendamentos()
@@ -742,7 +704,7 @@ with aba5:
         if not lista_agendamentos:
             st.info("Nenhum dado cadastrado até o momento.")
         else:
-            st.markdown("### 🔍 Filtros")
+            st.markdown("### 🔍 Filtros do Relatório")
             col_f1, col_f2 = st.columns(2)
 
             with col_f1:
@@ -815,7 +777,7 @@ with aba5:
 
             st.write("---")
 
-            st.markdown("### 📊 Relatório de Serviços")
+            st.markdown("### 📊 Desempenho e Quantidade de Serviços")
             col_b1, col_b2 = st.columns(2)
 
             ag_bruno = [ag for ag in ag_filtrados if ag.get("profissional") == "Bruno"]
@@ -837,13 +799,13 @@ with aba5:
             with col_b1:
                 st.markdown(
                     f"""
-                <div class="client-card">
-                    <h4 style="margin:0; color: #E2B068;">🧔 Bruno</h4>
-                    <p style="margin:5px 0 0 0;"><b>Atendimentos:</b> {len(ag_bruno)}</p>
+                <div class="client-card" style="border-left: 4px solid #23a55a !important;">
+                    <h4 style="margin:0;">🧔 Bruno</h4>
+                    <p style="margin:5px 0 0 0;"><b>Total Atendimentos:</b> {len(ag_bruno)}</p>
                     <p style="margin:0 0 10px 0;"><b>Faturamento:</b> R$ {fat_bruno:.2f}</p>
-                    <hr style="margin: 8px 0;">
-                    <b>Serviços:</b><br>
-                    {''.join([f'<small>• {srv}: <b>{qtd}</b></small><br>' for srv, qtd in servicos_bruno.items()]) if servicos_bruno else '<small>Nenhum no período.</small>'}
+                    <hr style="margin: 8px 0; opacity: 0.3;">
+                    <b>Serviços realizados:</b><br>
+                    {''.join([f'<small>• {srv}: <b>{qtd}</b></small><br>' for srv, qtd in servicos_bruno.items()]) if servicos_bruno else '<small>Nenhum serviço no período.</small>'}
                 </div>
                 """,
                     unsafe_allow_html=True,
@@ -852,13 +814,13 @@ with aba5:
             with col_b2:
                 st.markdown(
                     f"""
-                <div class="client-card">
-                    <h4 style="margin:0; color: #E2B068;">🧔 Samuel</h4>
-                    <p style="margin:5px 0 0 0;"><b>Atendimentos:</b> {len(ag_samuel)}</p>
+                <div class="client-card" style="border-left: 4px solid #23a55a !important;">
+                    <h4 style="margin:0;">🧔 Samuel</h4>
+                    <p style="margin:5px 0 0 0;"><b>Total Atendimentos:</b> {len(ag_samuel)}</p>
                     <p style="margin:0 0 10px 0;"><b>Faturamento:</b> R$ {fat_samuel:.2f}</p>
-                    <hr style="margin: 8px 0;">
-                    <b>Serviços:</b><br>
-                    {''.join([f'<small>• {srv}: <b>{qtd}</b></small><br>' for srv, qtd in servicos_samuel.items()]) if servicos_samuel else '<small>Nenhum no período.</small>'}
+                    <hr style="margin: 8px 0; opacity: 0.3;">
+                    <b>Serviços realizados:</b><br>
+                    {''.join([f'<small>• {srv}: <b>{qtd}</b></small><br>' for srv, qtd in servicos_samuel.items()]) if servicos_samuel else '<small>Nenhum serviço no período.</small>'}
                 </div>
                 """,
                     unsafe_allow_html=True,
@@ -866,7 +828,7 @@ with aba5:
 
             st.write("---")
 
-            st.markdown("### 📋 Lista Completa")
+            st.markdown("### 📋 Lista de Agendamentos (Filtrados)")
 
             if ag_filtrados:
                 tabela_dados = []
@@ -881,4 +843,10 @@ with aba5:
                             "Valor": f"R$ {PRECOS_SERVICOS.get(ag.get('servico',''), 0.0):.2f}",
                         }
                     )
+
                 st.dataframe(tabela_dados, use_container_width=True)
+            else:
+                st.info("Nenhum agendamento encontrado para os filtros selecionados.")
+
+    elif senha != "":
+        st.error("Senha incorreta. Verifique e tente novamente.")
