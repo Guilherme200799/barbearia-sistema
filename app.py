@@ -99,10 +99,8 @@ def atualizar_agendamento(ag_id, nova_data_hora):
     try:
         data_iso = nova_data_hora.strftime("%Y-%m-%d %H:%M:%S")
 
-        # 1. Tenta recuperar os dados do agendamento atual antes da alteração
         res_busca = supabase.table("agendamentos").select("*").eq("id", ag_id).execute()
         if not res_busca.data:
-            # Tenta com ID em formato numérico/string se não achar de primeira
             id_num = int(ag_id) if str(ag_id).isdigit() else ag_id
             res_busca = supabase.table("agendamentos").select("*").eq("id", id_num).execute()
 
@@ -111,8 +109,6 @@ def atualizar_agendamento(ag_id, nova_data_hora):
             return False
 
         ag_atual = res_busca.data[0]
-
-        # 2. Tenta fazer o UPDATE direto
         id_query = ag_atual["id"]
         resposta = (
             supabase.table("agendamentos")
@@ -124,8 +120,6 @@ def atualizar_agendamento(ag_id, nova_data_hora):
         if resposta.data and len(resposta.data) > 0:
             return True
 
-        # 3. Fallback: Se o RLS/permissão do Supabase bloqueou o UPDATE direto,
-        # deletamos o registro antigo e inserimos o novo com a data atualizada
         del_res = supabase.table("agendamentos").delete().eq("id", id_query).execute()
 
         dados_novos = {
@@ -148,37 +142,49 @@ def atualizar_agendamento(ag_id, nova_data_hora):
         return False
 
 
-# --- ESTILOS CSS PERSONALIZADOS ---
+# --- ESTILOS CSS PERSONALIZADOS (PRETO & DOURADO MODERN LUXE) ---
 st.markdown(
     """
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;900&display=swap');
     
-    html, body, [data-testid="stAppViewContainer"] {
+    /* Fundo Geral Escuro */
+    html, body, [data-testid="stAppViewContainer"], [data-testid="stHeader"] {
+        background-color: #0E0E10 !important;
+        color: #F0F0F0 !important;
         font-family: 'Montserrat', sans-serif !important;
     }
     
+    /* Container Principal */
+    [data-testid="stMainBlockContainer"] {
+        padding-top: 2rem !important;
+    }
+    
+    /* Cabeçalho Premium */
     .header-barber {
         text-align: center;
-        padding: 20px 0 15px 0;
+        padding: 30px 20px 20px 20px;
         margin-bottom: 25px;
-        border-bottom: 2px solid var(--text-color);
+        background: linear-gradient(180deg, rgba(212,175,55,0.08) 0%, rgba(14,14,16,0) 100%);
+        border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+        border-radius: 12px;
     }
     .header-tag {
         font-size: 0.75rem;
-        letter-spacing: 5px;
+        letter-spacing: 6px;
         font-weight: 700;
-        opacity: 0.6;
+        color: #D4AF37;
         text-transform: uppercase;
-        color: var(--text-color);
-        margin-bottom: 4px;
+        margin-bottom: 6px;
     }
     .header-title {
         font-family: 'Montserrat', sans-serif !important;
-        font-size: 2.3rem !important;
+        font-size: 2.5rem !important;
         font-weight: 900 !important;
-        letter-spacing: 3px !important;
-        color: var(--text-color) !important;
+        letter-spacing: 4px !important;
+        background: linear-gradient(135deg, #FFF 30%, #D4AF37 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
         margin: 0 !important;
         line-height: 1.1 !important;
         text-transform: uppercase;
@@ -186,61 +192,112 @@ st.markdown(
     .header-subtitle {
         font-size: 0.8rem;
         font-weight: 600;
-        color: var(--text-color);
-        opacity: 0.75;
-        margin-top: 8px;
-        letter-spacing: 2px;
+        color: #A0A0A0;
+        margin-top: 10px;
+        letter-spacing: 3px;
         text-transform: uppercase;
     }
     
+    /* Abas / Navigation Tabs */
     .stTabs [data-baseweb="tab-list"] {
-        gap: 6px;
-        background-color: var(--secondary-background-color) !important;
-        padding: 6px;
-        border-radius: 10px;
-        border-bottom: none !important;
+        gap: 8px;
+        background-color: #16161A !important;
+        padding: 8px;
+        border-radius: 12px;
+        border: 1px solid rgba(212, 175, 55, 0.2) !important;
     }
     .stTabs [data-baseweb="tab"] {
-        color: var(--text-color) !important;
-        opacity: 0.7;
+        color: #A0A0A0 !important;
         background-color: transparent !important;
-        border-radius: 6px;
-        padding: 8px 14px;
-        font-weight: 700 !important;
+        border-radius: 8px;
+        padding: 10px 16px;
+        font-weight: 600 !important;
+        border: none !important;
+        transition: all 0.3s ease;
     }
     .stTabs [aria-selected="true"] {
-        opacity: 1 !important;
-        background-color: var(--background-color) !important;
-        box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1) !important;
-        border-radius: 6px !important;
+        color: #0E0E10 !important;
+        background: linear-gradient(135deg, #FFD700 0%, #D4AF37 100%) !important;
+        font-weight: 700 !important;
+        box-shadow: 0px 4px 12px rgba(212, 175, 55, 0.3) !important;
+        border-radius: 8px !important;
     }
     
+    /* Cards Modernos */
     .client-card {
-        background-color: var(--secondary-background-color) !important;
-        border: 1px solid rgba(128, 128, 128, 0.2) !important;
-        padding: 16px;
-        border-radius: 10px;
-        margin-bottom: 10px;
+        background-color: #16161A !important;
+        border: 1px solid rgba(212, 175, 55, 0.25) !important;
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 15px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
     }
     
-    .whatsapp-btn {
-        background-color: #23a55a !important;
-        color: #ffffff !important;
-        padding: 10px 20px;
-        border-radius: 6px;
-        font-weight: 700;
-        text-decoration: none;
-        font-size: 14px;
-        display: inline-block;
+    /* Entradas e Seletores de Formuário */
+    .stTextInput>div>div>input, .stSelectbox>div>div, div[data-baseweb="select"]>div {
+        background-color: #1A1A20 !important;
+        color: #FFFFFF !important;
+        border: 1px solid rgba(212, 175, 55, 0.3) !important;
+        border-radius: 8px !important;
+    }
+    .stTextInput>div>div>input:focus, .stSelectbox>div>div:focus {
+        border-color: #FFD700 !important;
+        box-shadow: 0 0 8px rgba(212, 175, 55, 0.4) !important;
     }
 
+    /* Botões Primários (Dourados) */
     button[kind="primary"] {
-        background-color: #23a55a !important;
-        color: white !important;
+        background: linear-gradient(135deg, #FFD700 0%, #D4AF37 100%) !important;
+        color: #0E0E10 !important;
+        font-weight: 700 !important;
         border: none !important;
+        border-radius: 8px !important;
+        padding: 10px 20px !important;
+        transition: transform 0.2s, box-shadow 0.2s !important;
     }
     button[kind="primary"]:hover {
-        background-color: #1f924f !important;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(212, 175, 55, 0.4) !important;
+    }
+
+    /* Botões Secundários */
+    button[kind="secondary"] {
+        background-color: #1A1A20 !important;
+        color: #D4AF37 !important;
+        border: 1px solid rgba(212, 175, 55, 0.4) !important;
+        border-radius: 8px !important;
+    }
+    button[kind="secondary"]:hover {
+        border-color: #FFD700 !important;
+        background-color: #22222A !important;
+    }
+
+    /* Botão WhatsApp */
+    .whatsapp-btn {
+        background: linear-gradient(135deg, #25D366 0%, #128C7E 100%) !important;
+        color: #ffffff !important;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-weight: 700;
+        text-decoration: none;
+        font-size: 15px;
+        display: inline-block;
+        box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .whatsapp-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(37, 211, 102, 0.4);
+    }
+    
+    /* Rótulos e Textos Secundários */
+    label, p, span, div {
+        color: #E0E0E0 !important;
+    }
+    
+    /* Ajuste para Divisores */
+    hr {
+        border-color: rgba(212, 175, 55, 0.2) !important;
     }
     </style>
 """,
@@ -251,9 +308,9 @@ st.markdown(
 st.markdown(
     """
     <div class="header-barber">
-        <div class="header-tag">•💈BARBEARIA💈•</div>
-        <h1 class="header-title">• Preto & Branco •</h1>
-        <div class="header-subtitle">Agendamento Online & Gestão Integrada</div>
+        <div class="header-tag">• 💈 BARBEARIA LUXO 💈 •</div>
+        <h1 class="header-title">Preto & Dourado</h1>
+        <div class="header-subtitle">Agendamento Online & Gestão Exclusiva</div>
     </div>
 """,
     unsafe_allow_html=True,
@@ -283,11 +340,11 @@ with aba1:
     st.markdown(
         """
         <div class="client-card" style="margin-bottom: 25px;">
-            <p style="margin: 0 0 5px 0;">📍 <b>Endereço:</b> R. dos Toureiros, 62 - Juliana</p>
+            <p style="margin: 0 0 8px 0;">📍 <b>Endereço:</b> R. dos Toureiros, 62 - Juliana</p>
             <p style="margin: 0;">
                 📞 <b>Contatos para Dúvidas:</b> 
-                Bruno: <a href="https://wa.me/5531985271355" target="_blank" style="color: #23a55a; font-weight: bold; text-decoration: none;">(31) 98527-1355</a> | 
-                Samuel: <a href="https://wa.me/5531985271355" target="_blank" style="color: #23a55a; font-weight: bold; text-decoration: none;">(31) 98527-1355</a>
+                Bruno: <a href="https://wa.me/5531985271355" target="_blank" style="color: #FFD700; font-weight: bold; text-decoration: none;">(31) 98527-1355</a> | 
+                Samuel: <a href="https://wa.me/5531985271355" target="_blank" style="color: #FFD700; font-weight: bold; text-decoration: none;">(31) 98527-1355</a>
             </p>
         </div>
         """,
@@ -342,16 +399,24 @@ with aba1:
         st.warning("⚠️ A barbearia não abre aos domingos. Por favor, escolha outra data.")
         horarios_disponiveis = []
     else:
-        dia_semana_selecionado = data_atendimento.weekday()
+        dia_semana = data_atendimento.weekday()
         minutos_inicio = 480
-        minutos_fim = 1020 if dia_semana_selecionado == 5 else 1080
+        minutos_fim = 1020 if dia_semana == 5 else 1080
 
         horarios_todos = []
         minutos_atual = minutos_inicio
         while minutos_atual <= minutos_fim:
             h_print = minutos_atual // 60
             m_print = minutos_atual % 60
-            horarios_todos.append(dt_time(h_print, m_print))
+            horario_temp = dt_time(h_print, m_print)
+
+            # Segunda a Sexta (0 a 4): ignora horários das 12:00 até 13:59
+            eh_diasemana = dia_semana < 5
+            eh_almoco = (h_print == 12) or (h_print == 13)
+
+            if not (eh_diasemana and eh_almoco):
+                horarios_todos.append(horario_temp)
+
             minutos_atual += 40
 
         horarios_disponiveis = []
@@ -361,8 +426,7 @@ with aba1:
                 continue
 
             ocupado = any(
-                ag["profissional"] == profissional
-                and ag["data_hora"] == dt_verificar
+                ag["profissional"] == profissional and ag["data_hora"] == dt_verificar
                 for ag in lista_agendamentos
             )
             if not ocupado:
@@ -431,7 +495,7 @@ with aba1:
                 hora_f = hora_atendimento.strftime("%H:%M")
 
                 texto_msg = (
-                    f"Olá! Confirmo meu agendamento na Barbearia Preto & Branco:\n\n"
+                    f"Olá! Confirmo meu agendamento na Barbearia Preto & Dourado:\n\n"
                     f"👤 *Cliente:* {cliente}\n"
                     f"💈 *Serviço:* {servico}\n"
                     f"🧔 *Barbeiro:* {profissional}\n"
@@ -447,8 +511,8 @@ with aba1:
 
                 st.markdown(
                     f"""
-                <div style="background-color: var(--secondary-background-color); border: 2px solid #23a55a; padding: 20px; border-radius: 10px; text-align: center; margin-top: 15px; margin-bottom: 20px;">
-                    <h4 style="margin: 0 0 8px 0; color: var(--text-color);">Quase lá! Notifique o barbeiro:</h4>
+                <div style="background-color: #16161A; border: 1px solid #D4AF37; padding: 20px; border-radius: 12px; text-align: center; margin-top: 15px; margin-bottom: 20px;">
+                    <h4 style="margin: 0 0 10px 0; color: #FFD700;">Quase lá! Notifique o barbeiro:</h4>
                     <a href="{link_wa}" target="_blank" class="whatsapp-btn">
                         📲 Enviar confirmação no WhatsApp
                     </a>
@@ -554,7 +618,6 @@ with aba2:
                                     if nova_data == hoje_dt_rem.date() and h < hoje_dt_rem.time():
                                         continue
 
-                                    # Permite selecionar o próprio horário caso seja na mesma data/barbeiro
                                     if dt_v == ag["data_hora"]:
                                         hor_livres.append(h.strftime("%H:%M"))
                                         continue
@@ -622,7 +685,7 @@ with aba3:
                 hora_str = ag["data_hora"].strftime("%H:%M")
                 st.markdown(
                     f"""
-                <div class="client-card" style="border-left: 4px solid #23a55a !important;">
+                <div class="client-card" style="border-left: 4px solid #D4AF37 !important;">
                     <b>{ag['cliente']}</b> • {ag['servico']}<br>
                     <small>⏰ <b>{hora_str}</b> | 📱 {ag.get('telefone','')}</small>
                 </div>
@@ -642,7 +705,7 @@ with aba3:
                 hora_str = ag["data_hora"].strftime("%H:%M")
                 st.markdown(
                     f"""
-                <div class="client-card" style="border-left: 4px solid #23a55a !important;">
+                <div class="client-card" style="border-left: 4px solid #D4AF37 !important;">
                     <b>{ag['cliente']}</b> • {ag['servico']}<br>
                     <small>⏰ <b>{hora_str}</b> | 📱 {ag.get('telefone','')}</small>
                 </div>
@@ -799,8 +862,8 @@ with aba5:
             with col_b1:
                 st.markdown(
                     f"""
-                <div class="client-card" style="border-left: 4px solid #23a55a !important;">
-                    <h4 style="margin:0;">🧔 Bruno</h4>
+                <div class="client-card" style="border-left: 4px solid #D4AF37 !important;">
+                    <h4 style="margin:0; color: #FFD700;">🧔 Bruno</h4>
                     <p style="margin:5px 0 0 0;"><b>Total Atendimentos:</b> {len(ag_bruno)}</p>
                     <p style="margin:0 0 10px 0;"><b>Faturamento:</b> R$ {fat_bruno:.2f}</p>
                     <hr style="margin: 8px 0; opacity: 0.3;">
@@ -814,8 +877,8 @@ with aba5:
             with col_b2:
                 st.markdown(
                     f"""
-                <div class="client-card" style="border-left: 4px solid #23a55a !important;">
-                    <h4 style="margin:0;">🧔 Samuel</h4>
+                <div class="client-card" style="border-left: 4px solid #D4AF37 !important;">
+                    <h4 style="margin:0; color: #FFD700;">🧔 Samuel</h4>
                     <p style="margin:5px 0 0 0;"><b>Total Atendimentos:</b> {len(ag_samuel)}</p>
                     <p style="margin:0 0 10px 0;"><b>Faturamento:</b> R$ {fat_samuel:.2f}</p>
                     <hr style="margin: 8px 0; opacity: 0.3;">
@@ -843,10 +906,4 @@ with aba5:
                             "Valor": f"R$ {PRECOS_SERVICOS.get(ag.get('servico',''), 0.0):.2f}",
                         }
                     )
-
                 st.dataframe(tabela_dados, use_container_width=True)
-            else:
-                st.info("Nenhum agendamento encontrado para os filtros selecionados.")
-
-    elif senha != "":
-        st.error("Senha incorreta. Verifique e tente novamente.")
